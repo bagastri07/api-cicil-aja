@@ -41,3 +41,22 @@ func (r *BorrowerRepository) CreateBorrower(borrower *model.Borrower) error {
 	}
 	return nil
 }
+
+func (r *BorrowerRepository) UpdateBorrower(updatedBorrower *model.UpdateBorrower, borrowerID uint64) (*model.Borrower, error) {
+	borrower := new(model.Borrower)
+
+	if err := r.dbClient.First(&borrower, borrowerID).Error; err != nil {
+		return nil, err
+	}
+
+	r.dbClient.Model(&borrower).Updates(&model.Borrower{
+		Name: updatedBorrower.Name,
+		Birthday: updatedBorrower.Birthday,
+		University: updatedBorrower.University,
+		StudyProgram: updatedBorrower.StudyProgram,
+		StudentNumber: updatedBorrower.StudentNumber,
+		PhoneNumber: updatedBorrower.PhoneNumber,
+	})
+
+	return borrower, nil
+}

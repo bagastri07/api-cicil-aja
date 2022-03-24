@@ -35,6 +35,7 @@ func Init() *echo.Echo {
 	borrower := e.Group("/borrowers")
 	borrower.GET("/:borrowerID", borrowerCtl.HandleGetBorrowerByID)
 	borrower.POST("/create", borrowerCtl.HandleCreateNewBorrower)
+	borrower.PUT("/update/:borrowerID", borrowerCtl.HandleUpdateBorrower)
 
 	return e
 }

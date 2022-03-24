@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/bagastri07/api-cicil-aja/api/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -34,6 +35,8 @@ func GetDBConnection() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+
+	db.AutoMigrate(&model.Borrower{})
 
 	return db
 }

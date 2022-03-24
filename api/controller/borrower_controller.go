@@ -67,5 +67,43 @@ func (ctl *BorrowerController) HandleCreateNewBorrower(c echo.Context) error {
 		return helper.ErrorParsing(http.StatusBadRequest, err)
 	}
 
-	return c.JSON(http.StatusOK, borrower)
+	resp := new(model.DataResponse)
+	resp.Data = borrower
+
+	return c.JSON(http.StatusCreated, resp)
+}
+
+func (ctl *BorrowerController) HandleUpdateBorrower(c echo.Context) error {
+	updatedBorrower := new(model.UpdateBorrower)
+
+	if err := c.Bind(updatedBorrower); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	if err := c.Validate(updatedBorrower); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	borrowerID, err := strconv.ParseInt(c.Param("borrowerID"), 10, 64)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"messages": err.Error(),
+		})
+	}
+
+	result, err := ctl.borrowerRepository.UpdateBorrower(updatedBorrower, uint64(borrowerID))
+	
+	if err != nil {
+		return helper.ErrorParsing(http.StatusBadRequest, err)
+	}
+
+	
+	
+
+	resp := &model.DataResponse{
+		Data: result,
+	}
+
+	return c.JSON(http.StatusCreated, resp)
 }
