@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/bagastri07/api-cicil-aja/api/model"
 	"github.com/bagastri07/api-cicil-aja/api/repository"
+	"github.com/bagastri07/api-cicil-aja/helper"
 	"github.com/labstack/echo/v4"
 )
 
@@ -46,17 +46,26 @@ func (ctl *BorrowerController) HandleGetBorrowerByID(c echo.Context) error {
 
 func (ctl *BorrowerController) HandleCreateNewBorrower(c echo.Context) error {
 	borrower := new(model.Borrower)
-	fmt.Print(borrower)
 
 	if err := c.Bind(borrower); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(borrower); err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
+	hashedPasword, err := helper.HashPassword(borrower.Password)
 
+	if err != nil {
+		return helper.ErrorParsing(http.StatusBadRequest, err)
+	}
+
+	borrower.Password = hashedPasword
+
+	if err := ctl.borrowerRepository.CreateBorrower(borrower); err != nil {
+		return helper.ErrorParsing(http.StatusBadRequest, err)
+	}
 
 	return c.JSON(http.StatusOK, borrower)
 }
