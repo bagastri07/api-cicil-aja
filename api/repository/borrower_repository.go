@@ -19,10 +19,10 @@ func NewBorrowerRepository() *BorrowerRepository {
 	}
 }
 
-func (r *BorrowerRepository) GetBorrowerByID(borrowerID uint64) (*model.Borrower, error) {
+func (r *BorrowerRepository) GetBorrowerByEmail(borrowerEmail string) (*model.Borrower, error) {
 	borrower := new(model.Borrower)
 
-	err := r.dbClient.Where("id = ?", borrowerID).First(&borrower).Error
+	err := r.dbClient.Where("email = ?", borrowerEmail).First(&borrower).Error
 
 	if err != nil {
 		return nil, err
@@ -50,13 +50,23 @@ func (r *BorrowerRepository) UpdateBorrower(updatedBorrower *model.UpdateBorrowe
 	}
 
 	r.dbClient.Model(&borrower).Updates(&model.Borrower{
-		Name: updatedBorrower.Name,
-		Birthday: updatedBorrower.Birthday,
-		University: updatedBorrower.University,
-		StudyProgram: updatedBorrower.StudyProgram,
+		Name:          updatedBorrower.Name,
+		Birthday:      updatedBorrower.Birthday,
+		University:    updatedBorrower.University,
+		StudyProgram:  updatedBorrower.StudyProgram,
 		StudentNumber: updatedBorrower.StudentNumber,
-		PhoneNumber: updatedBorrower.PhoneNumber,
+		PhoneNumber:   updatedBorrower.PhoneNumber,
 	})
+
+	return borrower, nil
+}
+
+func (r *BorrowerRepository) FindForrowerByEmail(borrowerEmail string) (*model.Borrower, error) {
+	borrower := new(model.Borrower)
+
+	if err := r.dbClient.Where("email = ?", borrowerEmail).Find(&borrower).Error; err != nil {
+		return nil, err
+	}
 
 	return borrower, nil
 }

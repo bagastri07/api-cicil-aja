@@ -7,3 +7,8 @@ type BaseModel struct {
 	UpdatedAt *time.Time `json:"updated_at" db:"updated_at" gorm:"type:DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
 	DeletedAt *time.Time `json:"deleted_at" db:"deleted_at"`
 }
+
+type Login struct {
+	Email    string
+	Password string
+}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bagastri07/api-cicil-aja/api/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -12,20 +11,20 @@ import (
 
 func GetDBConnection() *gorm.DB {
 	dbConfig := struct {
-		Host string
-		User string
-		Pwd string
+		Host   string
+		User   string
+		Pwd    string
 		DbName string
-		Port string
-	} {
-		Host: os.Getenv("DB_HOST"),
-		User: os.Getenv("DB_USER"),
-		Pwd: os.Getenv("DB_PWD"),
+		Port   string
+	}{
+		Host:   os.Getenv("DB_HOST"),
+		User:   os.Getenv("DB_USER"),
+		Pwd:    os.Getenv("DB_PWD"),
 		DbName: os.Getenv("DB_NAME"),
-		Port: os.Getenv("DB_PORT"),
+		Port:   os.Getenv("DB_PORT"),
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", 
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		dbConfig.User, dbConfig.Pwd, dbConfig.Host, dbConfig.Port, dbConfig.DbName)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
@@ -36,7 +35,7 @@ func GetDBConnection() *gorm.DB {
 		panic(err)
 	}
 
-	db.AutoMigrate(&model.Borrower{})
+	//db.AutoMigrate(&model.Borrower{})
 
 	return db
 }

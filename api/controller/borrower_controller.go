@@ -6,7 +6,9 @@ import (
 
 	"github.com/bagastri07/api-cicil-aja/api/model"
 	"github.com/bagastri07/api-cicil-aja/api/repository"
+	"github.com/bagastri07/api-cicil-aja/api/token"
 	"github.com/bagastri07/api-cicil-aja/helper"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,18 +22,13 @@ func NewBorrowerController() *BorrowerController {
 	}
 }
 
-func (ctl *BorrowerController) HandleGetBorrowerByID(c echo.Context) error {
+func (ctl *BorrowerController) HandleGetBorrowerByEmail(c echo.Context) error {
 	var resp model.DataResponse
 
-	borrowerID, err := strconv.ParseInt(c.Param("borrowerID"), 10, 64)
+	borrowerToken := c.Get("borrower").(jwt.Token)
+	claims := borrowerToken.Claims.(*token.JwtCustomClaims)
 
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"messages": err.Error(),
-		})
-	}
-
-	borrower, err := ctl.borrowerRepository.GetBorrowerByID(uint64(borrowerID))
+	borrower, err := ctl.borrowerRepository.GetBorrowerByEmail(claims.Email)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
@@ -48,27 +45,28 @@ func (ctl *BorrowerController) HandleCreateNewBorrower(c echo.Context) error {
 	borrower := new(model.Borrower)
 
 	if err := c.Bind(borrower); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	if err := c.Validate(borrower); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	hashedPasword, err := helper.HashPassword(borrower.Password)
 
 	if err != nil {
-		return helper.ErrorParsing(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	borrower.Password = hashedPasword
 
 	if err := ctl.borrowerRepository.CreateBorrower(borrower); err != nil {
-		return helper.ErrorParsing(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	resp := new(model.DataResponse)
-	resp.Data = borrower
+	resp := &model.DataResponse{
+		Data: borrower,
+	}
 
 	return c.JSON(http.StatusCreated, resp)
 }
@@ -77,11 +75,11 @@ func (ctl *BorrowerController) HandleUpdateBorrower(c echo.Context) error {
 	updatedBorrower := new(model.UpdateBorrower)
 
 	if err := c.Bind(updatedBorrower); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	if err := c.Validate(updatedBorrower); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	borrowerID, err := strconv.ParseInt(c.Param("borrowerID"), 10, 64)
@@ -93,13 +91,10 @@ func (ctl *BorrowerController) HandleUpdateBorrower(c echo.Context) error {
 	}
 
 	result, err := ctl.borrowerRepository.UpdateBorrower(updatedBorrower, uint64(borrowerID))
-	
+
 	if err != nil {
 		return helper.ErrorParsing(http.StatusBadRequest, err)
 	}
-
-	
-	
 
 	resp := &model.DataResponse{
 		Data: result,
