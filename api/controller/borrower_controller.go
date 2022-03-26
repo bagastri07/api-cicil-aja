@@ -61,7 +61,7 @@ func (ctl *BorrowerController) HandleCreateNewBorrower(c echo.Context) error {
 	borrower.Password = hashedPasword
 
 	if err := ctl.borrowerRepository.CreateBorrower(borrower); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	resp := &model.DataResponse{
@@ -72,6 +72,7 @@ func (ctl *BorrowerController) HandleCreateNewBorrower(c echo.Context) error {
 }
 
 func (ctl *BorrowerController) HandleUpdateBorrower(c echo.Context) error {
+
 	updatedBorrower := new(model.UpdateBorrower)
 
 	if err := c.Bind(updatedBorrower); err != nil {
