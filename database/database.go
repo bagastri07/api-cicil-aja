@@ -35,7 +35,7 @@ func GetDBConnection() *gorm.DB {
 		panic(err)
 	}
 
-	//db.AutoMigrate(&model.Borrower{})
+	// db.AutoMigrate(&model.Borrower{})
 
 	return db
 }

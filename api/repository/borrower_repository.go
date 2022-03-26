@@ -64,8 +64,10 @@ func (r *BorrowerRepository) UpdateBorrower(updatedBorrower *model.UpdateBorrowe
 func (r *BorrowerRepository) FindForrowerByEmail(borrowerEmail string) (*model.Borrower, error) {
 	borrower := new(model.Borrower)
 
-	if err := r.dbClient.Where("email = ?", borrowerEmail).Find(&borrower).Error; err != nil {
-		return nil, err
+	res := r.dbClient.Where("email = ?", borrowerEmail).Find(&borrower)
+
+	if res.Error != nil {
+		return nil, res.Error
 	}
 
 	return borrower, nil
