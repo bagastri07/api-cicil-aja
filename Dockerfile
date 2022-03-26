@@ -13,6 +13,9 @@ COPY . .
 RUN go build -o server
 
 FROM alpine:3.14 as production
+## Add Timezone
+RUN apk update && apk add tzdata
+ENV TZ=Asia/Jakarta
 # Add certificates
 RUN apk add --no-cache ca-certificates
 # Copy built binary from builder
