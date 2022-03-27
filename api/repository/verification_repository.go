@@ -41,11 +41,18 @@ func (r *VerificationRepository) VerifyBorrower(email, token string) error {
 		return err
 	}
 
+	if verification.Used {
+		return errors.New("verification link is used ")
+	}
+
 	if !verification.ExpiredAt.After(time.Now()) {
 		return errors.New("verification link expired")
 	}
 
 	if verification.Email == email && verification.Token == token {
+		verification.Used = true
+		r.dbClient.Save(&verification)
+
 		borrower := new(model.Borrower)
 		if err := r.dbClient.Where("email = ?", email).First(&borrower).Error; err != nil {
 			return err

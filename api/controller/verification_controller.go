@@ -41,7 +41,7 @@ func (ctl *VerificationController) HandleSendEmailVerification(c echo.Context) e
 		Url   string
 	}{
 		Email: claims.Email,
-		Url:   fmt.Sprintf("%s/verifications/verify-borrower?verificationToken=%s&email=%s", os.Getenv("BASE_EMAIL_VERIF_URL"), verificationToken, claims.Email),
+		Url:   fmt.Sprintf("%s/verifications/verify-borrower/%s/%s", os.Getenv("BASE_EMAIL_VERIF_URL"), claims.Email, verificationToken),
 	}
 
 	// send email
@@ -65,12 +65,14 @@ func (ctl *VerificationController) HandleSendEmailVerification(c echo.Context) e
 
 func (ctl *VerificationController) HandleVerifyBorrower(c echo.Context) error {
 
-	verificationToken := c.QueryParam("verificationToken")
-	emailBorrower := c.QueryParam("email")
+	verificationToken := c.Param("verificationToken")
+	emailBorrower := c.Param("email")
 
 	if err := ctl.verificationRepository.VerifyBorrower(emailBorrower, verificationToken); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	return c.Redirect(http.StatusMovedPermanently, os.Getenv("REDIRECT_VERIFY_URL"))
+	return c.JSON(http.StatusAccepted, &model.MessageResponse{
+		Message: "verified",
+	})
 }

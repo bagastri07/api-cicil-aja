@@ -41,7 +41,7 @@ func Init() *echo.Echo {
 	//Group route for verification
 	verification := e.Group("/verifications")
 	verification.POST("/send-email", verificationCtl.HandleSendEmailVerification, customMiddleware.VerifyToken())
-	verification.GET("/verify-borrower", verificationCtl.HandleVerifyBorrower)
+	verification.GET("/verify-borrower/:email/:verificationToken", verificationCtl.HandleVerifyBorrower)
 
 	//Grup route for borrower
 	borrower := e.Group("/borrowers")
