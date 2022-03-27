@@ -27,6 +27,7 @@ func Init() *echo.Echo {
 	// Init Controller
 	authCtl := controller.NewAuthController()
 	borrowerCtl := controller.NewBorrowerController()
+	verificationCtl := controller.NewVerificationController()
 
 	// Root Routes
 	e.GET("/", func(c echo.Context) error {
@@ -37,20 +38,19 @@ func Init() *echo.Echo {
 	auth := e.Group("/auth")
 	auth.POST("/login", authCtl.BorrowerLogin)
 
+	//Group route for verification
+	verification := e.Group("/verifications")
+	verification.POST("/send-email", verificationCtl.HandleSendEmailVerification, customMiddleware.VerifyToken())
+	verification.GET("/verify-borrower", verificationCtl.HandleVerifyBorrower)
+
 	//Grup route for borrower
 	borrower := e.Group("/borrowers")
 	borrower.POST("/create", borrowerCtl.HandleCreateNewBorrower)
-
 	// Make other borrower endpoints restrict
 	borrower.Use(customMiddleware.VerifyToken())
-
-	borrower.GET("/:borrowerID", borrowerCtl.HandleGetBorrowerByEmail)
+	borrower.Use(customMiddleware.CheckVerificationStatus())
+	borrower.GET("/", borrowerCtl.HandleGetBorrowerByEmail)
 	borrower.PUT("/update/:borrowerID", borrowerCtl.HandleUpdateBorrower)
-
-	borrower.GET("/test", func(c echo.Context) error {
-
-		return c.String(http.StatusOK, "Welcome to CicilAja API 😍 ")
-	})
 
 	return e
 }

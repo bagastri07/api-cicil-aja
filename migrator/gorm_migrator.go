@@ -12,4 +12,5 @@ func main() {
 	db := database.GetDBConnection()
 
 	db.AutoMigrate(&model.Borrower{})
+	db.AutoMigrate(&model.VerificationToken{})
 }

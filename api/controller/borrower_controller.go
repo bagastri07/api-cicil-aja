@@ -7,7 +7,7 @@ import (
 	"github.com/bagastri07/api-cicil-aja/api/model"
 	"github.com/bagastri07/api-cicil-aja/api/repository"
 	"github.com/bagastri07/api-cicil-aja/api/token"
-	"github.com/bagastri07/api-cicil-aja/helper"
+	"github.com/bagastri07/api-cicil-aja/util"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
@@ -23,10 +23,8 @@ func NewBorrowerController() *BorrowerController {
 }
 
 func (ctl *BorrowerController) HandleGetBorrowerByEmail(c echo.Context) error {
-	var resp model.DataResponse
-
-	borrowerToken := c.Get("borrower").(jwt.Token)
-	claims := borrowerToken.Claims.(*token.JwtCustomClaims)
+	userToken := c.Get("user").(*jwt.Token)
+	claims := userToken.Claims.(*token.JwtCustomClaims)
 
 	borrower, err := ctl.borrowerRepository.GetBorrowerByEmail(claims.Email)
 
@@ -36,9 +34,9 @@ func (ctl *BorrowerController) HandleGetBorrowerByEmail(c echo.Context) error {
 		})
 	}
 
-	resp.Data = borrower
-
-	return c.JSON(http.StatusOK, resp)
+	return c.JSON(http.StatusOK, &model.DataResponse{
+		Data: borrower,
+	})
 }
 
 func (ctl *BorrowerController) HandleCreateNewBorrower(c echo.Context) error {
@@ -52,7 +50,7 @@ func (ctl *BorrowerController) HandleCreateNewBorrower(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	hashedPasword, err := helper.HashPassword(borrower.Password)
+	hashedPasword, err := util.HashPassword(borrower.Password)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -94,7 +92,7 @@ func (ctl *BorrowerController) HandleUpdateBorrower(c echo.Context) error {
 	result, err := ctl.borrowerRepository.UpdateBorrower(updatedBorrower, uint64(borrowerID))
 
 	if err != nil {
-		return helper.ErrorParsing(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	resp := &model.DataResponse{

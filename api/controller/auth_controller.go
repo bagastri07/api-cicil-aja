@@ -6,7 +6,7 @@ import (
 	"github.com/bagastri07/api-cicil-aja/api/model"
 	"github.com/bagastri07/api-cicil-aja/api/repository"
 	"github.com/bagastri07/api-cicil-aja/api/token"
-	"github.com/bagastri07/api-cicil-aja/helper"
+	"github.com/bagastri07/api-cicil-aja/util"
 	"github.com/labstack/echo/v4"
 )
 
@@ -31,7 +31,7 @@ func (ctl *AuthController) BorrowerLogin(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	if loginCredential.Email != borrower.Email || !helper.CheckPasswordHash(loginCredential.Password, borrower.Password) {
+	if loginCredential.Email != borrower.Email || !util.CheckPasswordHash(loginCredential.Password, borrower.Password) {
 		return echo.NewHTTPError(http.StatusUnauthorized)
 	}
 
