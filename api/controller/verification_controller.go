@@ -28,7 +28,7 @@ func (ctl *VerificationController) HandleSendEmailVerification(c echo.Context) e
 	userToken := c.Get("user").(*jwt.Token)
 	claims := userToken.Claims.(*token.JwtCustomClaims)
 
-	verificationToken := util.GenerateRandomString(20, util.STR_ALPHANUMERIC)
+	verificationToken := util.GenerateRandomString(40, util.STR_ALPHANUMERIC)
 
 	err := ctl.verificationRepository.CreateNewVerification(claims.Email, verificationToken)
 

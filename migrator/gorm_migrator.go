@@ -12,5 +12,12 @@ func main() {
 	db := database.GetDBConnection()
 
 	db.AutoMigrate(&model.Borrower{})
+	db.AutoMigrate(&model.BorrowerDocument{})
 	db.AutoMigrate(&model.VerificationToken{})
+	db.AutoMigrate(&model.LoanTicket{})
+	db.AutoMigrate(&model.LoanBill{})
+	db.AutoMigrate(&model.AmbassadorRegistration{})
+	db.AutoMigrate(&model.BankAccountInformation{})
+	db.AutoMigrate(&model.Admin{})
+	db.AutoMigrate(&model.AmbassadorComissionTrasaction{})
 }

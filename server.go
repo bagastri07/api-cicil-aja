@@ -26,5 +26,4 @@ func main() {
 
 	// Start App
 	e.Logger.Fatal(e.Start(":" + appPort))
-
 }

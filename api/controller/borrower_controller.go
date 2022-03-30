@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/bagastri07/api-cicil-aja/api/model"
 	"github.com/bagastri07/api-cicil-aja/api/repository"
@@ -70,6 +69,8 @@ func (ctl *BorrowerController) HandleCreateNewBorrower(c echo.Context) error {
 }
 
 func (ctl *BorrowerController) HandleUpdateBorrower(c echo.Context) error {
+	userToken := c.Get("user").(*jwt.Token)
+	claims := userToken.Claims.(*token.JwtCustomClaims)
 
 	updatedBorrower := new(model.UpdateBorrower)
 
@@ -81,15 +82,7 @@ func (ctl *BorrowerController) HandleUpdateBorrower(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	borrowerID, err := strconv.ParseInt(c.Param("borrowerID"), 10, 64)
-
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"messages": err.Error(),
-		})
-	}
-
-	result, err := ctl.borrowerRepository.UpdateBorrower(updatedBorrower, uint64(borrowerID))
+	result, err := ctl.borrowerRepository.UpdateBorrower(updatedBorrower, claims.Email)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)

@@ -42,10 +42,10 @@ func (r *BorrowerRepository) CreateBorrower(borrower *model.Borrower) error {
 	return nil
 }
 
-func (r *BorrowerRepository) UpdateBorrower(updatedBorrower *model.UpdateBorrower, borrowerID uint64) (*model.Borrower, error) {
+func (r *BorrowerRepository) UpdateBorrower(updatedBorrower *model.UpdateBorrower, borrowerEmail string) (*model.Borrower, error) {
 	borrower := new(model.Borrower)
 
-	if err := r.dbClient.First(&borrower, borrowerID).Error; err != nil {
+	if err := r.dbClient.Where("email = ?", borrowerEmail).First(&borrower).Error; err != nil {
 		return nil, err
 	}
 

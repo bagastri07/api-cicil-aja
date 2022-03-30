@@ -50,7 +50,7 @@ func Init() *echo.Echo {
 	borrower.Use(customMiddleware.VerifyToken())
 	borrower.Use(customMiddleware.CheckVerificationStatus())
 	borrower.GET("/", borrowerCtl.HandleGetBorrowerByEmail)
-	borrower.PUT("/update/:borrowerID", borrowerCtl.HandleUpdateBorrower)
+	borrower.PUT("/update", borrowerCtl.HandleUpdateBorrower)
 
 	return e
 }

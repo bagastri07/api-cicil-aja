@@ -24,7 +24,7 @@ func (r *VerificationRepository) CreateNewVerification(email, verificationToken 
 	verification := &model.VerificationToken{
 		Email:     email,
 		Token:     verificationToken,
-		ExpiredAt: time.Now().Add(time.Second * 30),
+		ExpiredAt: time.Now().Add(time.Minute * 2),
 	}
 
 	if err := r.dbClient.Create(&verification).Error; err != nil {
