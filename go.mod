@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/labstack/echo/v4 v4.7.2
 	gorm.io/driver/mysql v1.3.2
-	gorm.io/gorm v1.23.3
+	gorm.io/gorm v1.23.4
 )
 
 require (
@@ -41,7 +41,7 @@ require (
 
 require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.4 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/joho/godotenv v1.4.0
 )
 

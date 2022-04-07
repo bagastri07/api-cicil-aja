@@ -68,7 +68,7 @@ func (gm *EmailService) parseTemplate(templateFileName string, data interface{})
 
 func (gm *EmailService) SendEmailVerification(to string, data interface{}) (bool, error) {
 
-	emailBody, err := gm.parseTemplate("account_verification.html", data)
+	emailBody, err := gm.parseTemplate("templateConfirm.html", data)
 	if err != nil {
 		return false, err
 	}

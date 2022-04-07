@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <title>Email Template</title>
+  </head>
+  <body
+    style="
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      color: #332c2b;
+    "
+  >
+    <div
+      style="
+        background-image: linear-gradient(to bottom right, #eff6ff, #60a5fa);
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        padding-top: 5vh;
+        padding-bottom: 5vh;
+      "
+    >
+      <table style="margin: auto">
+        <tr style="vertical-align: middle">
+          <td style="text-align: center"></td>
+        </tr>
+        <tr>
+          <td style="vertical-align: middle; padding-left: 20px">
+            <h1
+              style="
+                text-align: center;
+                font-family: sans-serif, 'Open Sans';
+                font-style: normal;
+                font-weight: 700;
+                font-size: 2em;
+              "
+            >
+              Welcome to CicilAja
+            </h1>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div
+      style="
+        font-family: sans-serif, 'Open Sans';
+        font-size: 18px;
+        line-height: 28px;
+        padding: 30px;
+        margin-top: 50px;
+        margin-bottom: 30px;
+      "
+    >
+      <h3 style="font-size: 4vh">Hi, {{.Name}}</h3>
+      <p>
+        Thank you to registering our service and choose us. Now for securing
+        your account, please confirm that {{.Email}} is your email by clicking the
+        button below.
+      </p>
+    </div>
+    <div style="text-align: center">
+      <a
+        href="{{.Url}}"
+        style="
+          border-radius: 40px;
+          padding: 10px 15px;
+          background-color: #332c2b;
+          color: white;
+          text-decoration: none;
+          font-family: sans-serif, 'Open Sans';
+          text-align: center;
+        "
+        >Confirm</a
+      >
+    </div>
+    <div
+      style="
+        margin-top: 100px;
+        font-family: 'Inter', sans-serif;
+        background-image: url('/image/footer-bg.png');
+        text-align: center;
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-color: #282828;
+        color: white;
+        padding: 20px 30px;
+      "
+    >
+      <p>Ⓒ 2022 - CicilAja</p>
+    </div>
+  </body>
+</html>

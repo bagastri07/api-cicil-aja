@@ -20,4 +20,5 @@ func main() {
 	db.AutoMigrate(&model.BankAccountInformation{})
 	db.AutoMigrate(&model.Admin{})
 	db.AutoMigrate(&model.AmbassadorComissionTrasaction{})
+
 }

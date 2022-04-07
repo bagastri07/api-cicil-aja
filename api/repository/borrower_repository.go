@@ -2,6 +2,9 @@ package repository
 
 import (
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/bagastri07/api-cicil-aja/api/model"
 	"github.com/bagastri07/api-cicil-aja/database"
@@ -49,26 +52,97 @@ func (r *BorrowerRepository) UpdateBorrower(updatedBorrower *model.UpdateBorrowe
 		return nil, err
 	}
 
-	r.dbClient.Model(&borrower).Updates(&model.Borrower{
+	err := r.dbClient.Model(&borrower).Updates(&model.Borrower{
 		Name:          updatedBorrower.Name,
 		Birthday:      updatedBorrower.Birthday,
 		University:    updatedBorrower.University,
 		StudyProgram:  updatedBorrower.StudyProgram,
 		StudentNumber: updatedBorrower.StudentNumber,
 		PhoneNumber:   updatedBorrower.PhoneNumber,
-	})
+	}).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return borrower, nil
+}
+
+func (r *BorrowerRepository) UpdateBorrowerBankAccount(payload *model.UpdateBorrowerBankAccount, borrowerId uint64) (*model.Borrower, error) {
+	borrower := new(model.Borrower)
+
+	err := r.dbClient.Preload("Document").Preload("BankAccountInformation").First(borrower, borrowerId).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if borrower.BankAccountInformation == nil {
+		// Create
+		r.dbClient.Model(borrower).Association("BankAccountInformation").
+			Append(&model.BankAccountInformation{
+				BankName:         payload.BankName,
+				AccountNumber:    payload.AccountNumber,
+				AccountRecipient: payload.AccountRecipient,
+			})
+	} else {
+		// Update
+		borrower.BankAccountInformation.AccountNumber = payload.AccountNumber
+		borrower.BankAccountInformation.BankName = payload.BankName
+		borrower.BankAccountInformation.AccountRecipient = payload.AccountRecipient
+	}
+
+	r.dbClient.Save(borrower.BankAccountInformation)
 
 	return borrower, nil
 }
 
 func (r *BorrowerRepository) FindForrowerByEmail(borrowerEmail string) (*model.Borrower, error) {
-	borrower := new(model.Borrower)
+	var borrower model.Borrower
 
-	res := r.dbClient.Where("email = ?", borrowerEmail).Find(&borrower)
+	res := r.dbClient.Preload("Document").Find(&borrower)
 
 	if res.Error != nil {
 		return nil, res.Error
 	}
+
+	fmt.Println(borrower)
+
+	return &borrower, nil
+}
+
+func (r *BorrowerRepository) FindBorrowerByID(borrowerId uint64) (*model.Borrower, error) {
+	borrower := new(model.Borrower)
+
+	err := r.dbClient.Preload("Document").Preload("BankAccountInformation").First(borrower, borrowerId).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return borrower, nil
+}
+
+func (r *BorrowerRepository) UploadKtmImage(filePath string, borrowerId uint64) (*model.Borrower, error) {
+	borrower := new(model.Borrower)
+
+	err := r.dbClient.Preload("Document").Preload("BankAccountInformation").First(borrower, borrowerId).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if borrower.Document == nil {
+		r.dbClient.Model(borrower).Association("Document").Append(&model.BorrowerDocument{
+			KTMUrl: filePath,
+		})
+	} else {
+		oldPath := borrower.Document.KTMUrl
+		os.Remove(filepath.Join("public", oldPath))
+
+		borrower.Document.KTMUrl = filePath
+	}
+	r.dbClient.Save(borrower.Document)
 
 	return borrower, nil
 }

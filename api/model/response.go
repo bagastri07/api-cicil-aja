@@ -7,3 +7,6 @@ type DataResponse struct {
 type MessageResponse struct {
 	Message interface{} `json:"messages"`
 }
+
+type OauthResp struct {
+}

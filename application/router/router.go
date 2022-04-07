@@ -37,6 +37,8 @@ func Init() *echo.Echo {
 	// Auth Routes
 	auth := e.Group("/auth")
 	auth.POST("/login", authCtl.BorrowerLogin)
+	auth.GET("/oauth-login", authCtl.BorrowerLoginWithGoogle)
+	auth.Any("/oauth-callback", authCtl.BorrowerLoginGoogleCallback)
 
 	//Group route for verification
 	verification := e.Group("/verifications")
@@ -46,11 +48,14 @@ func Init() *echo.Echo {
 	//Grup route for borrower
 	borrower := e.Group("/borrowers")
 	borrower.POST("/create", borrowerCtl.HandleCreateNewBorrower)
+
 	// Make other borrower endpoints restrict
 	borrower.Use(customMiddleware.VerifyToken())
 	borrower.Use(customMiddleware.CheckVerificationStatus())
-	borrower.GET("/", borrowerCtl.HandleGetBorrowerByEmail)
+	borrower.GET("/current-borrower", borrowerCtl.HandleGetCurrentBorrower)
 	borrower.PUT("/update", borrowerCtl.HandleUpdateBorrower)
+	borrower.PUT("/update-bank-information", borrowerCtl.HandleUpdateBorrowerBankAccount)
+	borrower.POST("/upload-ktm", borrowerCtl.HandleUploadBorrowerDocument)
 
 	return e
 }

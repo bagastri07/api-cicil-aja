@@ -16,11 +16,13 @@ import (
 
 type VerificationController struct {
 	verificationRepository *repository.VerificationRepository
+	borrowerRepository     *repository.BorrowerRepository
 }
 
 func NewVerificationController() *VerificationController {
 	return &VerificationController{
 		verificationRepository: repository.NewVerificationRepository(),
+		borrowerRepository:     repository.NewBorrowerRepository(),
 	}
 }
 
@@ -28,20 +30,28 @@ func (ctl *VerificationController) HandleSendEmailVerification(c echo.Context) e
 	userToken := c.Get("user").(*jwt.Token)
 	claims := userToken.Claims.(*token.JwtCustomClaims)
 
+	borrower, err := ctl.borrowerRepository.FindForrowerByEmail(claims.Email)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
 	verificationToken := util.GenerateRandomString(40, util.STR_ALPHANUMERIC)
 
-	err := ctl.verificationRepository.CreateNewVerification(claims.Email, verificationToken)
+	err = ctl.verificationRepository.CreateNewVerification(claims.Email, verificationToken)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	data := struct {
+		Name  string
 		Email string
 		Url   string
 	}{
-		Email: claims.Email,
-		Url:   fmt.Sprintf("%s/verifications/verify-borrower/%s/%s", os.Getenv("BASE_EMAIL_VERIF_URL"), claims.Email, verificationToken),
+		Name:  borrower.Name,
+		Email: borrower.Email,
+		Url:   fmt.Sprintf("%sverifications/verify-borrower/%s/%s", os.Getenv("BASE_EMAIL_VERIF_URL"), claims.Email, verificationToken),
 	}
 
 	// send email
@@ -49,6 +59,7 @@ func (ctl *VerificationController) HandleSendEmailVerification(c echo.Context) e
 	status, err := gmSvc.SendEmailVerification(claims.Email, data)
 
 	if err != nil {
+		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 

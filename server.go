@@ -17,6 +17,9 @@ func main() {
 	// Init router
 	e := router.Init()
 
+	// Serve Static
+	e.Static("/", "public")
+
 	// APP_PORT
 	appPort := os.Getenv("APP_PORT")
 

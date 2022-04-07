@@ -9,14 +9,16 @@ import (
 )
 
 type JwtCustomClaims struct {
+	ID       uint64 `json:"ID"`
 	Email    string `json:"email"`
 	UserType string `json:"role"`
 	jwt.StandardClaims
 }
 
-func GenerateToken(email string, userType string) (string, error) {
+func GenerateToken(id uint64, email string, userType string) (string, error) {
 
 	claims := &JwtCustomClaims{
+		ID:       id,
 		Email:    email,
 		UserType: userType,
 		StandardClaims: jwt.StandardClaims{
