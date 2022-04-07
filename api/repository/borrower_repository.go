@@ -100,7 +100,7 @@ func (r *BorrowerRepository) UpdateBorrowerBankAccount(payload *model.UpdateBorr
 func (r *BorrowerRepository) FindForrowerByEmail(borrowerEmail string) (*model.Borrower, error) {
 	var borrower model.Borrower
 
-	res := r.dbClient.Preload("Document").Find(&borrower)
+	res := r.dbClient.Preload("Document").Find(&borrower, "email = ?", borrowerEmail)
 
 	if res.Error != nil {
 		return nil, res.Error
