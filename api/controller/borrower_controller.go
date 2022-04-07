@@ -139,7 +139,7 @@ func (ctl *BorrowerController) HandleUploadBorrowerDocument(c echo.Context) erro
 	defer src.Close()
 
 	// Destination
-	filename := util.GenerateRandomString(30, util.STR_ALPHANUMERIC) + file.Filename
+	filename := util.GenerateRandomString(30, util.STR_ALPHANUMERIC) + filepath.Ext(file.Filename)
 	filePath := filepath.Join("img", filepath.Base(filename))
 	dst, err := os.Create(filepath.Join("public", filePath))
 	if err != nil {
