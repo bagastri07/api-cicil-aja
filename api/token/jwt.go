@@ -9,18 +9,18 @@ import (
 )
 
 type JwtCustomClaims struct {
-	ID       uint64 `json:"ID"`
-	Email    string `json:"email"`
-	UserType string `json:"role"`
+	ID    uint64 `json:"ID"`
+	Email string `json:"email"`
+	Admin bool   `json:"role"`
 	jwt.StandardClaims
 }
 
-func GenerateToken(id uint64, email string, userType string) (string, error) {
+func GenerateToken(id uint64, email string, Admin bool) (string, error) {
 
 	claims := &JwtCustomClaims{
-		ID:       id,
-		Email:    email,
-		UserType: userType,
+		ID:    id,
+		Email: email,
+		Admin: Admin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
 		},

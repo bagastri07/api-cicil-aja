@@ -46,6 +46,10 @@ func messageForTag(param string, tag string) string {
 		return fmt.Sprintf("This field should have Max %s digit character", param)
 	case "e164":
 		return "This field should have correct number format (e164):"
+	case "oneof":
+		return fmt.Sprintf("This field should one of [%s]", param)
+	case "url":
+		return "this field should be valid url, example: https://example.com"
 	}
 	return ""
 }

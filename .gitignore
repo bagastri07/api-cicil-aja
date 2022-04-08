@@ -2,3 +2,5 @@
 .air.conf
 tmp
 temp_test
+public/img
+!public/img/img-example.jpg

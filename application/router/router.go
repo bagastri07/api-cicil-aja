@@ -21,13 +21,14 @@ func Init() *echo.Echo {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
-		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
+		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.PATCH},
 	}))
 
 	// Init Controller
 	authCtl := controller.NewAuthController()
 	borrowerCtl := controller.NewBorrowerController()
 	verificationCtl := controller.NewVerificationController()
+	loanTicketctl := controller.NewLoanTicketController()
 
 	// Root Routes
 	e.GET("/", func(c echo.Context) error {
@@ -52,10 +53,33 @@ func Init() *echo.Echo {
 	// Make other borrower endpoints restrict
 	borrower.Use(customMiddleware.VerifyToken())
 	borrower.Use(customMiddleware.CheckVerificationStatus())
-	borrower.GET("/current-borrower", borrowerCtl.HandleGetCurrentBorrower)
-	borrower.PUT("/update", borrowerCtl.HandleUpdateBorrower)
+	borrower.GET("", borrowerCtl.HandleGetCurrentBorrower)
+	borrower.PUT("", borrowerCtl.HandleUpdateBorrower)
 	borrower.PUT("/update-bank-information", borrowerCtl.HandleUpdateBorrowerBankAccount)
 	borrower.POST("/upload-ktm", borrowerCtl.HandleUploadBorrowerDocument)
+	borrower.PATCH("/change-password", borrowerCtl.HandleChangePassword)
+
+	// Group Loan Ticket
+	loanTicket := e.Group("/loan-tickets")
+	loanTicket.Use(customMiddleware.VerifyToken())
+
+	// Loan Ticket Request
+	loanTicket.POST("", loanTicketctl.HandleMakeLoanTicket)
+	loanTicket.GET("", loanTicketctl.HandleGetAllTicket)
+	loanTicket.GET("/:loanTicketID", loanTicketctl.HandleGetLoanTicketByID)
+	loanTicket.DELETE("/:loanTicketID", loanTicketctl.HandleDeleteLoanTicketByID)
+
+	// Auth group
+	e.POST("/_admin/auth/login", authCtl.AdminLogin)
+
+	// Group fo admin
+	admin := e.Group("/_admin")
+	admin.Use(customMiddleware.VerifyToken())
+	admin.Use(customMiddleware.IsAdmin())
+
+	adminLoanTicket := admin.Group("/loan-tickets")
+	adminLoanTicket.GET("", loanTicketctl.HandleGetAllTicketForAdmin)
+	adminLoanTicket.GET("/:loanTicketID", loanTicketctl.HandleGetLoanTicketByIDForAdmin)
 
 	return e
 }

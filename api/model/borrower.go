@@ -18,10 +18,10 @@ type Borrower struct {
 	VerifiedAt             *time.Time              `json:"verified_at" gorm:"type:DATETIME DEFAULT NULL"`
 	AmbassadorRegistration *AmbassadorRegistration `json:"ambassador_registration" gorm:"foreignKey:borrower_id"`
 	ApprovedAsAmbassadorAt *time.Time              `json:"approved_as_ambassador_at"`
-	AmbassadorLoanTickets  []*LoanTicket           `json:"ambassador_loan_tickets" gorm:"foreignKey:ambassador_id"`
+	AmbassadorLoanTickets  *[]LoanTicket           `json:"ambassador_loan_tickets,omitempty" gorm:"foreignKey:ambassador_id"`
 	BankAccountInformation *BankAccountInformation `json:"bank_information" gorm:"foreignKey:borrower_id"`
-	LoanTickets            *[]LoanTicket           `json:"loan_tickets" gorm:"foreignKey:borrower_id"`
-	LoanBills              *[]LoanBill             `json:"loan_bills" gorm:"foreignKey:borrower_id"`
+	LoanTickets            *[]LoanTicket           `json:"loan_tickets,omitempty" gorm:"foreignKey:borrower_id"`
+	LoanBills              *[]LoanBill             `json:"loan_bills,omitempty" gorm:"foreignKey:borrower_id"`
 	BaseModel
 }
 

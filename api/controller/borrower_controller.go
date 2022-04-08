@@ -59,7 +59,7 @@ func (ctl *BorrowerController) HandleUpdateBorrower(c echo.Context) error {
 	userToken := c.Get("user").(*jwt.Token)
 	claims := userToken.Claims.(*token.JwtCustomClaims)
 
-	updatedBorrower := new(model.UpdateBorrower)
+	updatedBorrower := new(model.UpdateBorrowerPayload)
 
 	if err := c.Bind(updatedBorrower); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -87,7 +87,7 @@ func (ctl *BorrowerController) HandleUpdateBorrowerBankAccount(c echo.Context) e
 	claims := userToken.Claims.(*token.JwtCustomClaims)
 	fmt.Print(claims)
 
-	payload := new(model.UpdateBorrowerBankAccount)
+	payload := new(model.UpdateBorrowerBankAccountPayload)
 
 	if err := c.Bind(payload); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -166,5 +166,48 @@ func (ctl *BorrowerController) HandleUploadBorrowerDocument(c echo.Context) erro
 		Data: result,
 	}
 
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (ctl *BorrowerController) HandleChangePassword(c echo.Context) error {
+	userToken := c.Get("user").(*jwt.Token)
+	claims := userToken.Claims.(*token.JwtCustomClaims)
+
+	payload := new(model.ChangePasswordPayload)
+
+	if err := c.Bind(payload); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	if err := c.Validate(payload); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	borrowor, err := ctl.borrowerRepository.FindBorrowerByID(claims.ID)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	// check hash
+	if !util.CheckPasswordHash(payload.OldPassword, borrowor.Password) {
+		return echo.NewHTTPError(http.StatusBadRequest, &model.MessageResponse{
+			Message: "password not match",
+		})
+	}
+
+	hashedPassword, err := util.HashPassword(payload.NewPassword)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	if err := ctl.borrowerRepository.ChangePassword(claims.ID, hashedPassword); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	resp := &model.MessageResponse{
+		Message: "password updated",
+	}
 	return c.JSON(http.StatusOK, resp)
 }
