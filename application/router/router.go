@@ -28,7 +28,8 @@ func Init() *echo.Echo {
 	authCtl := controller.NewAuthController()
 	borrowerCtl := controller.NewBorrowerController()
 	verificationCtl := controller.NewVerificationController()
-	loanTicketctl := controller.NewLoanTicketController()
+	loanTicketCtl := controller.NewLoanTicketController()
+	loanBillCtl := controller.NewLoanBillController()
 
 	// Root Routes
 	e.GET("/", func(c echo.Context) error {
@@ -64,10 +65,17 @@ func Init() *echo.Echo {
 	loanTicket.Use(customMiddleware.VerifyToken())
 
 	// Loan Ticket Request
-	loanTicket.POST("", loanTicketctl.HandleMakeLoanTicket)
-	loanTicket.GET("", loanTicketctl.HandleGetAllTicket)
-	loanTicket.GET("/:loanTicketID", loanTicketctl.HandleGetLoanTicketByID)
-	loanTicket.DELETE("/:loanTicketID", loanTicketctl.HandleDeleteLoanTicketByID)
+	loanTicket.POST("", loanTicketCtl.HandleMakeLoanTicket)
+	loanTicket.GET("", loanTicketCtl.HandleGetAllTicket)
+	loanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByID)
+	loanTicket.DELETE("/:loanTicketID", loanTicketCtl.HandleDeleteLoanTicketByID)
+
+	// Grip Loan Bill
+	loanBill := e.Group("/loan-bills")
+	loanBill.Use(customMiddleware.VerifyToken())
+
+	// Loan Bills Request
+	loanBill.GET("", loanBillCtl.GetAllLoanBill)
 
 	// Auth group
 	e.POST("/_admin/auth/login", authCtl.AdminLogin)
@@ -78,8 +86,9 @@ func Init() *echo.Echo {
 	admin.Use(customMiddleware.IsAdmin())
 
 	adminLoanTicket := admin.Group("/loan-tickets")
-	adminLoanTicket.GET("", loanTicketctl.HandleGetAllTicketForAdmin)
-	adminLoanTicket.GET("/:loanTicketID", loanTicketctl.HandleGetLoanTicketByIDForAdmin)
+	adminLoanTicket.GET("", loanTicketCtl.HandleGetAllTicketForAdmin)
+	adminLoanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByIDForAdmin)
+	adminLoanTicket.POST("/:loanTicketID/accept", loanTicketCtl.HandleAcceptLoanTicketByIDForAdmin)
 
 	return e
 }

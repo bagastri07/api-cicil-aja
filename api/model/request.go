@@ -29,7 +29,7 @@ type ChangePasswordPayload struct {
 }
 
 type MakeLoanTicketPayload struct {
-	LoanAmount         uint64  `json:"loan_amount" validate:"required"`
+	LoanAmount         float64 `json:"loan_amount" validate:"required"`
 	LoanType           string  `json:"loan_type" validate:"required,oneof=college-bill shopping"`
 	LoanTenureInMonths string  `json:"loan_tenure_in_months" validate:"required,oneof=3 6 12"`
 	ItemUrl            string  `json:"item_url" validate:"required,url"`

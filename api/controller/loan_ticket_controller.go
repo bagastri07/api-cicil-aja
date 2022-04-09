@@ -35,11 +35,11 @@ func (ctl *LoanTicketController) HandleMakeLoanTicket(c echo.Context) error {
 	}
 
 	if payload.LoanTenureInMonths == "3" {
-		payload.InterestRate = 0.7
+		payload.InterestRate = 0.2
 	} else if payload.LoanTenureInMonths == "6" {
-		payload.InterestRate = 0.15
+		payload.InterestRate = 0.25
 	} else if payload.LoanTenureInMonths == "12" {
-		payload.InterestRate = 0.22
+		payload.InterestRate = 0.35
 	}
 
 	result, err := ctl.loanTicketRepository.MakeNewLoanTicket(claims.ID, payload)
@@ -136,6 +136,21 @@ func (ctl *LoanTicketController) HandleGetLoanTicketByIDForAdmin(c echo.Context)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	resp := &model.DataResponse{
+		Data: result,
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (ctl *LoanTicketController) HandleAcceptLoanTicketByIDForAdmin(c echo.Context) error {
+	ticketID := c.Param("loanTicketID")
+
+	result, err := ctl.loanTicketRepository.AcceptLoanTicketByIDForAdmin(ticketID)
+
+	if err != nil {
+		return err
 	}
 
 	resp := &model.DataResponse{
