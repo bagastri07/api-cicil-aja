@@ -42,7 +42,7 @@ func (r *AmbassadorRepository) RegisterAsAmbassador(borrowerID uint64) (*model.A
 		if err := r.dbClient.Create(&newRegistration).Error; err != nil {
 			return nil, echo.NewHTTPError(http.StatusInternalServerError)
 		}
-		return registration, nil
+		return newRegistration, nil
 	}
 
 	if registration.Status == "pending" {
