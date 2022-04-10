@@ -6,3 +6,7 @@ type AmbassadorRegistration struct {
 	Status     string `json:"status" gorm:"type:ENUM('pending','accepted','rejected') DEFAULT 'pending'"`
 	BaseModel
 }
+
+type AmbassadorRegistrations struct {
+	AmbassadorRegistrations []AmbassadorRegistration `json:"ambassador_registrations"`
+}

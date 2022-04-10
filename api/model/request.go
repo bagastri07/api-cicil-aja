@@ -35,3 +35,7 @@ type MakeLoanTicketPayload struct {
 	ItemUrl            string  `json:"item_url" validate:"required,url"`
 	InterestRate       float32 `json:"interest_rate"`
 }
+
+type UpdateRegistrationStatus struct {
+	Status string `json:"status" validate:"required,oneof=rejected accepted"`
+}

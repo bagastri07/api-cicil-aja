@@ -30,6 +30,7 @@ func Init() *echo.Echo {
 	verificationCtl := controller.NewVerificationController()
 	loanTicketCtl := controller.NewLoanTicketController()
 	loanBillCtl := controller.NewLoanBillController()
+	ambassadorCtl := controller.NewAmbassadorController()
 
 	// Root Routes
 	e.GET("/", func(c echo.Context) error {
@@ -70,13 +71,20 @@ func Init() *echo.Echo {
 	loanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByID)
 	loanTicket.DELETE("/:loanTicketID", loanTicketCtl.HandleDeleteLoanTicketByID)
 
-	// Grip Loan Bill
+	// Group Loan Bill
 	loanBill := e.Group("/loan-bills")
 	loanBill.Use(customMiddleware.VerifyToken())
 
 	// Loan Bills Request
 	loanBill.GET("", loanBillCtl.HandleGetAllLoanBill)
 	loanBill.PATCH("/:loanBillID", loanBillCtl.HandlePayLoanBillByID)
+
+	//A Group Ambassador
+	ambasaddor := e.Group("/ambassadors")
+	ambasaddor.Use(customMiddleware.VerifyToken())
+
+	// Ambassador Request
+	ambasaddor.POST("/register", ambassadorCtl.HandleRegisterAsAmbassador)
 
 	// Auth group
 	e.POST("/_admin/auth/login", authCtl.AdminLogin)
@@ -90,6 +98,10 @@ func Init() *echo.Echo {
 	adminLoanTicket.GET("", loanTicketCtl.HandleGetAllTicketForAdmin)
 	adminLoanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByIDForAdmin)
 	adminLoanTicket.POST("/:loanTicketID/accept", loanTicketCtl.HandleAcceptLoanTicketByIDForAdmin)
+
+	adminAmbassador := admin.Group("/ambassadors")
+	adminAmbassador.GET("", ambassadorCtl.HandleGetAllAmbassadorRegistrationsForAdmin)
+	adminAmbassador.PATCH("/:registrationID/update-status", ambassadorCtl.HandleUpdateRegistrationStatusForAdmin)
 
 	return e
 }
