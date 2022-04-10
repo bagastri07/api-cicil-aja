@@ -65,7 +65,7 @@ func (r *LoanTicketrRepository) GetAllLoanTickets(borrowerID uint64, status stri
 func (r *LoanTicketrRepository) GetLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
 	loatTicket := new(model.LoanTicket)
 
-	if err := r.dbClient.Where("borrower_id", borrowerID).First(loatTicket, loanTicketID).Error; err != nil {
+	if err := r.dbClient.Where("borrower_id", borrowerID).Preload("LoanBills").First(loatTicket, loanTicketID).Error; err != nil {
 		return nil, err
 	}
 
@@ -105,7 +105,7 @@ func (r *LoanTicketrRepository) GetAllLoanTicketsForAdmin(status string) (*model
 func (r *LoanTicketrRepository) GetLoanTicketByIdForAdmin(loanTicketID string) (*model.LoanTicket, error) {
 	loatTicket := new(model.LoanTicket)
 
-	result := r.dbClient.First(loatTicket, loanTicketID)
+	result := r.dbClient.Preload("LoanBills").First(loatTicket, loanTicketID)
 
 	if err := result.Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

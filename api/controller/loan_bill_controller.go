@@ -20,7 +20,7 @@ func NewLoanBillController() *LoanBillController {
 	}
 }
 
-func (ctl *LoanBillController) GetAllLoanBill(c echo.Context) error {
+func (ctl *LoanBillController) HandleGetAllLoanBill(c echo.Context) error {
 	userToken := c.Get("user").(*jwt.Token)
 	claims := userToken.Claims.(*token.JwtCustomClaims)
 
@@ -34,6 +34,26 @@ func (ctl *LoanBillController) GetAllLoanBill(c echo.Context) error {
 
 	resp := &model.DataResponse{
 		Data: result,
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (ctl *LoanBillController) HandlePayLoanBillByID(c echo.Context) error {
+	userToken := c.Get("user").(*jwt.Token)
+	claims := userToken.Claims.(*token.JwtCustomClaims)
+
+	loanBillID := c.Param("loanBillID")
+
+	result, err := ctl.loanBillRepository.PayLoanBillByID(claims.ID, loanBillID)
+
+	if err != nil {
+		return err
+	}
+
+	resp := &model.MessageDataResponse{
+		Message: "payment success",
+		Data:    result,
 	}
 
 	return c.JSON(http.StatusOK, resp)

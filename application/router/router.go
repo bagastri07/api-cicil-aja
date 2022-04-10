@@ -75,7 +75,8 @@ func Init() *echo.Echo {
 	loanBill.Use(customMiddleware.VerifyToken())
 
 	// Loan Bills Request
-	loanBill.GET("", loanBillCtl.GetAllLoanBill)
+	loanBill.GET("", loanBillCtl.HandleGetAllLoanBill)
+	loanBill.PATCH("/:loanBillID", loanBillCtl.HandlePayLoanBillByID)
 
 	// Auth group
 	e.POST("/_admin/auth/login", authCtl.AdminLogin)

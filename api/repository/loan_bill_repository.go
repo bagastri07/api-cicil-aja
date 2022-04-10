@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -41,6 +42,33 @@ func (r *LoanBillRepository) GetAllLoanBill(borrowerID uint64, ticketID, status 
 	}
 
 	return loanBills, nil
+}
+
+func (r *LoanBillRepository) PayLoanBillByID(borrowerID uint64, LoanBillID string) (*model.LoanBill, error) {
+	loanBill := new(model.LoanBill)
+
+	if err := r.dbClient.Where("borrower_id", borrowerID).First(&loanBill, LoanBillID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	if loanBill.PaidAt != nil {
+		return nil, echo.NewHTTPError(http.StatusUnprocessableEntity, &model.MessageResponse{
+			Message: "this loan bill already paid",
+		})
+	}
+
+	now := time.Now()
+	loanBill.PaidAt = &now
+	loanBill.Status = "paid"
+
+	if err := r.dbClient.Save(&loanBill).Error; err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return loanBill, nil
 }
 
 // ============ Admin Repository ==============
