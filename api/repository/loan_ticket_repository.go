@@ -161,6 +161,10 @@ func (r *LoanTicketrRepository) AssignAmbassadorToTicket(borrowerID uint64) (*ui
 
 	ambaSelected := ambaTickets[0]
 
+	if borrowerID == ambaSelected.ID {
+		ambaSelected = ambaTickets[1]
+	}
+
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
