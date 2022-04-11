@@ -54,7 +54,6 @@ func Init() *echo.Echo {
 
 	// Make other borrower endpoints restrict
 	borrower.Use(customMiddleware.VerifyToken())
-	borrower.Use(customMiddleware.CheckVerificationStatus())
 	borrower.GET("", borrowerCtl.HandleGetCurrentBorrower)
 	borrower.PUT("", borrowerCtl.HandleUpdateBorrower)
 	borrower.PUT("/update-bank-information", borrowerCtl.HandleUpdateBorrowerBankAccount)
@@ -100,7 +99,8 @@ func Init() *echo.Echo {
 	adminLoanTicket.POST("/:loanTicketID/accept", loanTicketCtl.HandleAcceptLoanTicketByIDForAdmin)
 
 	adminAmbassador := admin.Group("/ambassadors")
-	adminAmbassador.GET("", ambassadorCtl.HandleGetAllAmbassadorRegistrationsForAdmin)
+	adminAmbassador.GET("", ambassadorCtl.HandleGetAcceptedAmbassadorForAdmin)
+	adminAmbassador.GET("/registrations", ambassadorCtl.HandleGetAllAmbassadorRegistrationsForAdmin)
 	adminAmbassador.PATCH("/:registrationID/update-status", ambassadorCtl.HandleUpdateRegistrationStatusForAdmin)
 
 	return e

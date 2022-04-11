@@ -3,11 +3,13 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/bagastri07/api-cicil-aja/api/model"
 	"github.com/bagastri07/api-cicil-aja/database"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -117,7 +119,7 @@ func (r *BorrowerRepository) FindBorrowerByID(borrowerId uint64) (*model.Borrowe
 	err := r.dbClient.Preload("Document").Preload("BankAccountInformation").First(borrower, borrowerId).Error
 
 	if err != nil {
-		return nil, err
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return borrower, nil

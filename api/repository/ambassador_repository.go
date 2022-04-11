@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/bagastri07/api-cicil-aja/api/model"
 	"github.com/bagastri07/api-cicil-aja/database"
@@ -83,8 +82,7 @@ func (r *AmbassadorRepository) UpdateAmbassadorRegistrationStatusForAdmin(regist
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
 
-		now := time.Now()
-		borrower.ApprovedAsAmbassadorAt = &now
+		borrower.IsAmbassador = true
 
 		if err := r.dbClient.Save(&borrower).Error; err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
@@ -121,4 +119,14 @@ func (r *AmbassadorRepository) GetAllAmbassadorRegistrationForAdmin(statuses str
 	}
 
 	return registrations, nil
+}
+
+func (r *AmbassadorRepository) GetAllAcceptedAmbassadorForAdmin() (*model.Borrowers, error) {
+	borrowers := new(model.Borrowers)
+
+	if err := r.dbClient.Where("is_ambassador = ?", true).Find(&borrowers.Borrowers).Error; err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return borrowers, nil
 }

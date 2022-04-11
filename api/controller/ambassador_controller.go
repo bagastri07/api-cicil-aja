@@ -79,3 +79,17 @@ func (ctl *AmbassadorController) HandleGetAllAmbassadorRegistrationsForAdmin(c e
 
 	return c.JSON(http.StatusOK, resp)
 }
+
+func (ctl *AmbassadorController) HandleGetAcceptedAmbassadorForAdmin(c echo.Context) error {
+	result, err := ctl.ambassadorRepository.GetAllAcceptedAmbassadorForAdmin()
+
+	if err != nil {
+		return err
+	}
+
+	resp := &model.DataResponse{
+		Data: result,
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}

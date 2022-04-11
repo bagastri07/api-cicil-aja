@@ -16,8 +16,8 @@ type Borrower struct {
 	PhoneNumber            string                  `json:"phone_number" validate:"required,min=10,max=14,e164" gorm:"not null"`
 	Document               *BorrowerDocument       `json:"borrower_document"`
 	VerifiedAt             *time.Time              `json:"verified_at" gorm:"type:DATETIME DEFAULT NULL"`
-	AmbassadorRegistration *AmbassadorRegistration `json:"ambassador_registration" gorm:"foreignKey:borrower_id"`
-	ApprovedAsAmbassadorAt *time.Time              `json:"approved_as_ambassador_at"`
+	AmbassadorRegistration *AmbassadorRegistration `json:"ambassador_registration,omitempty" gorm:"foreignKey:borrower_id"`
+	IsAmbassador           bool                    `json:"is_ambassador" gorm:"type:tinyint(1) DEFAULT 0 NOT NULL"`
 	AmbassadorLoanTickets  *[]LoanTicket           `json:"ambassador_loan_tickets,omitempty" gorm:"foreignKey:ambassador_id"`
 	BankAccountInformation *BankAccountInformation `json:"bank_information" gorm:"foreignKey:borrower_id"`
 	LoanTickets            *[]LoanTicket           `json:"loan_tickets,omitempty" gorm:"foreignKey:borrower_id"`
