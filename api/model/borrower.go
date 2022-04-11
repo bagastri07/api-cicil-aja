@@ -18,7 +18,8 @@ type Borrower struct {
 	VerifiedAt             *time.Time              `json:"verified_at" gorm:"type:DATETIME DEFAULT NULL"`
 	AmbassadorRegistration *AmbassadorRegistration `json:"ambassador_registration,omitempty" gorm:"foreignKey:borrower_id"`
 	IsAmbassador           bool                    `json:"is_ambassador" gorm:"type:tinyint(1) DEFAULT 0 NOT NULL"`
-	AmbassadorLoanTickets  *[]LoanTicket           `json:"ambassador_loan_tickets,omitempty" gorm:"foreignKey:ambassador_id"`
+	AcceptedAsAmbassadorAt *time.Time              `json:"accepted_as_ambassador_at" gorm:"default:null"`
+	AmbassadorLoanTickets  []LoanTicket            `json:"ambassador_loan_tickets,omitempty" gorm:"foreignKey:ambassador_id"`
 	BankAccountInformation *BankAccountInformation `json:"bank_information" gorm:"foreignKey:borrower_id"`
 	LoanTickets            *[]LoanTicket           `json:"loan_tickets,omitempty" gorm:"foreignKey:borrower_id"`
 	LoanBills              *[]LoanBill             `json:"loan_bills,omitempty" gorm:"foreignKey:borrower_id"`
@@ -34,4 +35,14 @@ type BorrowerDocument struct {
 
 type Borrowers struct {
 	Borrowers []Borrower `json:"borrowers"`
+}
+
+type AmbassadorWithTheNumberOfTicket struct {
+	ID             uint64
+	AcceptedAt     *time.Time
+	NumberOfTicket int64
+}
+
+type AmbassadorWithTheNumberOfTickets struct {
+	AmbassadarAndTickets []AmbassadorWithTheNumberOfTicket
 }

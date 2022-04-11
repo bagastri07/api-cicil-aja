@@ -73,7 +73,7 @@ func (ctl *AmbassadorController) HandleGetAllAmbassadorRegistrationsForAdmin(c e
 		return err
 	}
 
-	resp := model.MessageDataResponse{
+	resp := model.DataResponse{
 		Data: result,
 	}
 
@@ -82,6 +82,20 @@ func (ctl *AmbassadorController) HandleGetAllAmbassadorRegistrationsForAdmin(c e
 
 func (ctl *AmbassadorController) HandleGetAcceptedAmbassadorForAdmin(c echo.Context) error {
 	result, err := ctl.ambassadorRepository.GetAllAcceptedAmbassadorForAdmin()
+
+	if err != nil {
+		return err
+	}
+
+	resp := &model.DataResponse{
+		Data: result,
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (ctl *AmbassadorController) HandleGetAllAmbassadorsAndNumberOfTickets(c echo.Context) error {
+	result, err := ctl.ambassadorRepository.GetAllAmbassadorsWithTheNumberOfTicket()
 
 	if err != nil {
 		return err

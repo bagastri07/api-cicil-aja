@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/bagastri07/api-cicil-aja/api/model"
 	"github.com/bagastri07/api-cicil-aja/database"
@@ -55,6 +56,24 @@ func (r *AmbassadorRepository) RegisterAsAmbassador(borrowerID uint64) (*model.A
 	})
 }
 
+func (r *AmbassadorRepository) GetAllAmbassadorsWithTheNumberOfTicket() (*model.AmbassadorWithTheNumberOfTickets, error) {
+	ambassadorLoanTicket := new(model.AmbassadorWithTheNumberOfTickets)
+
+	if err := r.dbClient.Raw(`	SELECT  b.id, COUNT(lt.ambassador_id) AS number_of_ticket,
+									b.accepted_as_ambassador_at AS accepted_at
+								from cicil_aja.borrowers b 
+								LEFT JOIN cicil_aja.loan_tickets lt 
+								on b.id  = lt.ambassador_id
+								WHERE b.is_ambassador = 1
+								GROUP  BY  b.id
+								ORDER BY number_of_ticket ASC, accepted_at ASC`).
+		Scan(&ambassadorLoanTicket.AmbassadarAndTickets).Error; err != nil {
+		return nil, err
+	}
+
+	return ambassadorLoanTicket, nil
+}
+
 // ============ Admin Repository ==============
 
 func (r *AmbassadorRepository) UpdateAmbassadorRegistrationStatusForAdmin(registrationID string, payload *model.UpdateRegistrationStatus) error {
@@ -82,6 +101,8 @@ func (r *AmbassadorRepository) UpdateAmbassadorRegistrationStatusForAdmin(regist
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
 
+		now := time.Now()
+		borrower.AcceptedAsAmbassadorAt = &now
 		borrower.IsAmbassador = true
 
 		if err := r.dbClient.Save(&borrower).Error; err != nil {

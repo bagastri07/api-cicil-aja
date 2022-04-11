@@ -15,7 +15,7 @@ type LoanTicket struct {
 	AcceptedAt             *time.Time `json:"accepted_at"`
 	Status                 string     `json:"status" gorm:"type:ENUM('pending', 'accepted') DEFAULT 'pending'"`
 	LoanBills              []LoanBill `json:"loan_bills" gorm:"foreignKey:loan_ticket_id"`
-	AmbassadorID           uint64     `json:"ambassador_id" gorm:"NOT NULL"`
+	AmbassadorID           *uint64    `json:"ambassador_id" gorm:"default:null"`
 	BaseModel
 }
 

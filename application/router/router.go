@@ -101,6 +101,7 @@ func Init() *echo.Echo {
 	adminAmbassador := admin.Group("/ambassadors")
 	adminAmbassador.GET("", ambassadorCtl.HandleGetAcceptedAmbassadorForAdmin)
 	adminAmbassador.GET("/registrations", ambassadorCtl.HandleGetAllAmbassadorRegistrationsForAdmin)
+	adminAmbassador.GET("/number-of-tickets", ambassadorCtl.HandleGetAllAmbassadorsAndNumberOfTickets)
 	adminAmbassador.PATCH("/:registrationID/update-status", ambassadorCtl.HandleUpdateRegistrationStatusForAdmin)
 
 	return e

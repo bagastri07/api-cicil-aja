@@ -35,7 +35,6 @@ func (r *LoanTicketrRepository) MakeNewLoanTicket(borrowerID uint64, payload *mo
 		LoanType:           payload.LoanType,
 		InterestRate:       payload.InterestRate,
 		ItemUrl:            payload.ItemUrl,
-		AmbassadorID:       1,
 		BorrowerID:         borrowerID,
 		LoanTotal:          payload.LoanAmount + (payload.LoanAmount * float64(payload.InterestRate)),
 		Status:             "pending",
@@ -130,9 +129,16 @@ func (r *LoanTicketrRepository) AcceptLoanTicketByIDForAdmin(loanTicketID string
 		})
 	}
 
+	ambaSelectedID, err := r.AssignAmbassadorToTicket(loanTicket.BorrowerID)
+
+	if err != nil {
+		return nil, err
+	}
+
 	acceptedTime := time.Now()
 	loanTicket.AcceptedAt = &acceptedTime
 	loanTicket.Status = "accepted"
+	loanTicket.AmbassadorID = ambaSelectedID
 
 	loanTicketRepo := NewLoanBillRepository()
 	if err := loanTicketRepo.MakeAllBillsByLoanTicketIDForAdmin(loanTicket); err != nil {
@@ -144,4 +150,20 @@ func (r *LoanTicketrRepository) AcceptLoanTicketByIDForAdmin(loanTicketID string
 	}
 
 	return loanTicket, nil
+}
+
+func (r *LoanTicketrRepository) AssignAmbassadorToTicket(borrowerID uint64) (*uint64, error) {
+	ambassadorRepo := NewAmbassadorReposotory()
+
+	result, err := ambassadorRepo.GetAllAmbassadorsWithTheNumberOfTicket()
+
+	ambaTickets := result.AmbassadarAndTickets
+
+	ambaSelected := ambaTickets[0]
+
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return &ambaSelected.ID, nil
 }
