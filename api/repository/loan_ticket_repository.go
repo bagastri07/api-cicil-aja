@@ -2,7 +2,9 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/bagastri07/api-cicil-aja/api/model"
@@ -11,18 +13,18 @@ import (
 	"gorm.io/gorm"
 )
 
-type LoanTicketrRepository struct {
+type LoanTicketRepository struct {
 	dbClient *gorm.DB
 }
 
-func NewLoanTicketRepository() *LoanTicketrRepository {
+func NewLoanTicketRepository() *LoanTicketRepository {
 	dbClient := database.GetDBConnection()
-	return &LoanTicketrRepository{
+	return &LoanTicketRepository{
 		dbClient: dbClient,
 	}
 }
 
-func (r *LoanTicketrRepository) MakeNewLoanTicket(borrowerID uint64, payload *model.MakeLoanTicketPayload) (*model.LoanTicket, error) {
+func (r *LoanTicketRepository) MakeNewLoanTicket(borrowerID uint64, payload *model.MakeLoanTicketPayload) (*model.LoanTicket, error) {
 	borrower := new(model.Borrower)
 
 	if err := r.dbClient.Preload("LoanTickets").First(&borrower, borrowerID).Error; err != nil {
@@ -45,13 +47,20 @@ func (r *LoanTicketrRepository) MakeNewLoanTicket(borrowerID uint64, payload *mo
 	return &loanTicket, nil
 }
 
-func (r *LoanTicketrRepository) GetAllLoanTickets(borrowerID uint64, status string) (*model.LoanTickets, error) {
+func (r *LoanTicketRepository) GetAllLoanTickets(borrowerID uint64, statuses string) (*model.LoanTickets, error) {
 	loanTickets := new(model.LoanTickets)
 
 	query := r.dbClient
 
-	if status == "pending" || status == "accepted" {
-		query = query.Where("status = ?", status)
+	statusesSlice := strings.Split(statuses, ",")
+	if statuses != "" {
+		for index, status := range statusesSlice {
+			if index == 0 {
+				query = query.Where("status = ?", status)
+			} else {
+				query = query.Or("status = ?", status)
+			}
+		}
 	}
 
 	if err := query.Order("created_at desc").Find(&loanTickets.LoanTickets, "borrower_id", borrowerID).Error; err != nil {
@@ -61,7 +70,7 @@ func (r *LoanTicketrRepository) GetAllLoanTickets(borrowerID uint64, status stri
 	return loanTickets, nil
 }
 
-func (r *LoanTicketrRepository) GetLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
+func (r *LoanTicketRepository) GetLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
 	loatTicket := new(model.LoanTicket)
 
 	if err := r.dbClient.Where("borrower_id", borrowerID).Preload("LoanBills").First(loatTicket, loanTicketID).Error; err != nil {
@@ -71,7 +80,7 @@ func (r *LoanTicketrRepository) GetLoanTicketById(borrowerID uint64, loanTicketI
 	return loatTicket, nil
 }
 
-func (r *LoanTicketrRepository) DeleteLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
+func (r *LoanTicketRepository) DeleteLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
 	loatTicket := new(model.LoanTicket)
 
 	if err := r.dbClient.Where("borrower_id", borrowerID).First(loatTicket, loanTicketID).Error; err != nil {
@@ -83,15 +92,74 @@ func (r *LoanTicketrRepository) DeleteLoanTicketById(borrowerID uint64, loanTick
 	return loatTicket, nil
 }
 
-// ============ Admin Repository ==============
+// ============ Ambassador Repository ==============
 
-func (r *LoanTicketrRepository) GetAllLoanTicketsForAdmin(status string) (*model.LoanTickets, error) {
+func (r *LoanTicketRepository) ReviewLoanTikcetByAmbassador(ambassadorID uint64, loanTicketID string) (*model.LoanTicket, error) {
+	loatTicket := new(model.LoanTicket)
+
+	if err := r.dbClient.Where("ambassador_id = ?", ambassadorID).Where("ID = ?", loanTicketID).First(&loatTicket).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	if loatTicket.ReviewedByAmbassadorAt != nil {
+		return nil, echo.NewHTTPError(http.StatusUnprocessableEntity, &model.MessageResponse{
+			Message: "this loan ticket is already reviewed",
+		})
+	}
+
+	now := time.Now()
+	loatTicket.ReviewedByAmbassadorAt = &now
+
+	if err := r.dbClient.Save(&loatTicket).Error; err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return loatTicket, nil
+}
+
+func (r *LoanTicketRepository) GetAllLoanTicketsForAmbassador(ambassadorID uint64, statuses string) (*model.LoanTickets, error) {
 	loanTickets := new(model.LoanTickets)
 
 	query := r.dbClient
 
-	if status == "pending" || status == "accepted" {
-		query = query.Where("status = ?", status)
+	statusesSlice := strings.Split(statuses, ",")
+	if statuses != "" {
+		for index, status := range statusesSlice {
+			if index == 0 {
+				query = query.Where("status = ?", status)
+			} else {
+				query = query.Or("status = ?", status)
+			}
+		}
+	}
+
+	if err := query.Order("created_at desc").Find(&loanTickets.LoanTickets, "ambassador_id = ?", ambassadorID).Error; err != nil {
+		return nil, err
+	}
+
+	return loanTickets, nil
+}
+
+// ============ Admin Repository ==============
+
+func (r *LoanTicketRepository) GetAllLoanTicketsForAdmin(statuses string) (*model.LoanTickets, error) {
+	loanTickets := new(model.LoanTickets)
+
+	query := r.dbClient
+
+	statusesSlice := strings.Split(statuses, ",")
+
+	if statuses != "" {
+		for index, status := range statusesSlice {
+			if index == 0 {
+				query = query.Where("status = ?", status)
+			} else {
+				query = query.Or("status = ?", status)
+			}
+		}
 	}
 
 	if err := query.Order("created_at desc").Find(&loanTickets.LoanTickets).Error; err != nil {
@@ -101,7 +169,7 @@ func (r *LoanTicketrRepository) GetAllLoanTicketsForAdmin(status string) (*model
 	return loanTickets, nil
 }
 
-func (r *LoanTicketrRepository) GetLoanTicketByIdForAdmin(loanTicketID string) (*model.LoanTicket, error) {
+func (r *LoanTicketRepository) GetLoanTicketByIdForAdmin(loanTicketID string) (*model.LoanTicket, error) {
 	loatTicket := new(model.LoanTicket)
 
 	result := r.dbClient.Preload("LoanBills").First(loatTicket, loanTicketID)
@@ -116,34 +184,51 @@ func (r *LoanTicketrRepository) GetLoanTicketByIdForAdmin(loanTicketID string) (
 	return loatTicket, nil
 }
 
-func (r *LoanTicketrRepository) AcceptLoanTicketByIDForAdmin(loanTicketID string) (*model.LoanTicket, error) {
+func (r *LoanTicketRepository) UpdateStatusLoanTicketByIDForAdmin(loanTicketID, status string) (*model.LoanTicket, error) {
 	loanTicket, err := r.GetLoanTicketByIdForAdmin(loanTicketID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if loanTicket.AcceptedAt != nil {
+	if (loanTicket.Status != "pending" && loanTicket.Status != "amba-ready") || loanTicket.Status == status {
 		return nil, echo.NewHTTPError(http.StatusUnprocessableEntity, &model.MessageResponse{
-			Message: "this loan ticket is already accepted",
+			Message: "this loan ticket is already " + loanTicket.Status,
 		})
 	}
 
-	ambaSelectedID, err := r.AssignAmbassadorToTicket(loanTicket.BorrowerID)
+	if status == "amba-ready" {
+		ambaSelectedID, err := r.AssignAmbassadorToTicket(loanTicket.BorrowerID)
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+
+		loanTicket.AmbassadorID = ambaSelectedID
+	} else if status == "accepted" {
+		if loanTicket.Status != "amba-ready" {
+			return nil, echo.NewHTTPError(http.StatusUnprocessableEntity, &model.MessageResponse{
+				Message: fmt.Sprintf("this loan ticket is %s, can not be accepted", loanTicket.Status),
+			})
+		}
+
+		if loanTicket.ReviewedByAmbassadorAt == nil {
+			return nil, echo.NewHTTPError(http.StatusUnprocessableEntity, &model.MessageResponse{
+				Message: "this loan ticket need to be reviewed by ambassador",
+			})
+		}
+
+		acceptedTime := time.Now()
+		loanTicket.AcceptedAt = &acceptedTime
+
+		loanTicketRepo := NewLoanBillRepository()
+		if err := loanTicketRepo.MakeAllBillsByLoanTicketIDForAdmin(loanTicket); err != nil {
+			return nil, err
+		}
+
 	}
 
-	acceptedTime := time.Now()
-	loanTicket.AcceptedAt = &acceptedTime
-	loanTicket.Status = "accepted"
-	loanTicket.AmbassadorID = ambaSelectedID
-
-	loanTicketRepo := NewLoanBillRepository()
-	if err := loanTicketRepo.MakeAllBillsByLoanTicketIDForAdmin(loanTicket); err != nil {
-		return nil, err
-	}
+	loanTicket.Status = status
 
 	if err := r.dbClient.Save(&loanTicket).Error; err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -152,7 +237,7 @@ func (r *LoanTicketrRepository) AcceptLoanTicketByIDForAdmin(loanTicketID string
 	return loanTicket, nil
 }
 
-func (r *LoanTicketrRepository) AssignAmbassadorToTicket(borrowerID uint64) (*uint64, error) {
+func (r *LoanTicketRepository) AssignAmbassadorToTicket(borrowerID uint64) (*uint64, error) {
 	ambassadorRepo := NewAmbassadorReposotory()
 
 	result, err := ambassadorRepo.GetAllAmbassadorsWithTheNumberOfTicket()

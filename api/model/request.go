@@ -39,3 +39,7 @@ type MakeLoanTicketPayload struct {
 type UpdateRegistrationStatus struct {
 	Status string `json:"status" validate:"required,oneof=rejected accepted"`
 }
+
+type UpdateLoanTicketStatus struct {
+	Status string `json:"status" validate:"required,oneof=rejected accepted amba-ready"`
+}

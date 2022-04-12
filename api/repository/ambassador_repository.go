@@ -64,7 +64,8 @@ func (r *AmbassadorRepository) GetAllAmbassadorsWithTheNumberOfTicket() (*model.
 								from cicil_aja.borrowers b 
 								LEFT JOIN cicil_aja.loan_tickets lt 
 								on b.id  = lt.ambassador_id
-								WHERE b.is_ambassador = 1
+								WHERE b.is_ambassador = 1 AND
+									lt.status <> 'rejected'
 								GROUP  BY  b.id
 								ORDER BY number_of_ticket ASC, accepted_at ASC`).
 		Scan(&ambassadorLoanTicket.AmbassadarAndTickets).Error; err != nil {
@@ -127,11 +128,13 @@ func (r *AmbassadorRepository) GetAllAmbassadorRegistrationForAdmin(statuses str
 
 	statusesSlice := strings.Split(statuses, ",")
 
-	for index, status := range statusesSlice {
-		if index == 0 {
-			query = query.Where("status = ?", status)
-		} else {
-			query = query.Or("status = ?", status)
+	if statuses != "" {
+		for index, status := range statusesSlice {
+			if index == 0 {
+				query = query.Where("status = ?", status)
+			} else {
+				query = query.Or("status = ?", status)
+			}
 		}
 	}
 

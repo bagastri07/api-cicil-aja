@@ -88,21 +88,31 @@ func Init() *echo.Echo {
 	// Auth group
 	e.POST("/_admin/auth/login", authCtl.AdminLogin)
 
-	// Group fo admin
-	admin := e.Group("/_admin")
-	admin.Use(customMiddleware.VerifyToken())
-	admin.Use(customMiddleware.IsAdmin())
+	// Group fo adminEndpoint
+	adminEndpoint := e.Group("/_admin")
+	adminEndpoint.Use(customMiddleware.VerifyToken())
+	adminEndpoint.Use(customMiddleware.IsAdmin())
 
-	adminLoanTicket := admin.Group("/loan-tickets")
+	adminLoanTicket := adminEndpoint.Group("/loan-tickets")
 	adminLoanTicket.GET("", loanTicketCtl.HandleGetAllTicketForAdmin)
 	adminLoanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByIDForAdmin)
-	adminLoanTicket.POST("/:loanTicketID/accept", loanTicketCtl.HandleAcceptLoanTicketByIDForAdmin)
+	adminLoanTicket.PATCH("/:loanTicketID/update-status", loanTicketCtl.HandleUpdateStatusLoanTicketByIDForAdmin)
 
-	adminAmbassador := admin.Group("/ambassadors")
+	adminAmbassador := adminEndpoint.Group("/ambassadors")
 	adminAmbassador.GET("", ambassadorCtl.HandleGetAcceptedAmbassadorForAdmin)
 	adminAmbassador.GET("/registrations", ambassadorCtl.HandleGetAllAmbassadorRegistrationsForAdmin)
 	adminAmbassador.GET("/number-of-tickets", ambassadorCtl.HandleGetAllAmbassadorsAndNumberOfTickets)
 	adminAmbassador.PATCH("/:registrationID/update-status", ambassadorCtl.HandleUpdateRegistrationStatusForAdmin)
+
+	// group for ambassador
+	ambasaddorEndpoint := e.Group("/_ambassador")
+	ambasaddorEndpoint.Use(customMiddleware.VerifyToken())
+	ambasaddorEndpoint.Use(customMiddleware.IsAmbassador())
+
+	// group for loan tickets
+	ambasaddorLoanTicket := ambasaddorEndpoint.Group("/loan-tickets")
+	ambasaddorLoanTicket.GET("", loanTicketCtl.HandleGetAllLoanTicketForAmbassador)
+	ambasaddorLoanTicket.PATCH("/:loanTicketID/reviewed", loanTicketCtl.HandleReviewLoanTicketByAmbassador)
 
 	return e
 }

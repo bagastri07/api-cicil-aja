@@ -11,7 +11,7 @@ import (
 )
 
 type LoanTicketController struct {
-	loanTicketRepository *repository.LoanTicketrRepository
+	loanTicketRepository *repository.LoanTicketRepository
 }
 
 func NewLoanTicketController() *LoanTicketController {
@@ -111,6 +111,46 @@ func (ctl *LoanTicketController) HandleDeleteLoanTicketByID(c echo.Context) erro
 	return c.JSON(http.StatusOK, resp)
 }
 
+// ============ Ambassador Controller ==============
+func (ctl *LoanTicketController) HandleReviewLoanTicketByAmbassador(c echo.Context) error {
+	userToken := c.Get("user").(*jwt.Token)
+	claims := userToken.Claims.(*token.JwtCustomClaims)
+
+	ticketID := c.Param("loanTicketID")
+
+	result, err := ctl.loanTicketRepository.ReviewLoanTikcetByAmbassador(claims.ID, ticketID)
+
+	if err != nil {
+		return err
+	}
+
+	resp := &model.MessageDataResponse{
+		Message: "reviewed",
+		Data:    result,
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (ctl *LoanTicketController) HandleGetAllLoanTicketForAmbassador(c echo.Context) error {
+	userToken := c.Get("user").(*jwt.Token)
+	claims := userToken.Claims.(*token.JwtCustomClaims)
+
+	status := c.QueryParam("status")
+
+	result, err := ctl.loanTicketRepository.GetAllLoanTicketsForAmbassador(claims.ID, status)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	resp := &model.DataResponse{
+		Data: result,
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
 // ============ Admin Controller ==============
 
 func (ctl *LoanTicketController) HandleGetAllTicketForAdmin(c echo.Context) error {
@@ -144,10 +184,20 @@ func (ctl *LoanTicketController) HandleGetLoanTicketByIDForAdmin(c echo.Context)
 	return c.JSON(http.StatusOK, resp)
 }
 
-func (ctl *LoanTicketController) HandleAcceptLoanTicketByIDForAdmin(c echo.Context) error {
+func (ctl *LoanTicketController) HandleUpdateStatusLoanTicketByIDForAdmin(c echo.Context) error {
 	ticketID := c.Param("loanTicketID")
 
-	result, err := ctl.loanTicketRepository.AcceptLoanTicketByIDForAdmin(ticketID)
+	payload := new(model.UpdateLoanTicketStatus)
+
+	if err := c.Bind(payload); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	if err := c.Validate(payload); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	result, err := ctl.loanTicketRepository.UpdateStatusLoanTicketByIDForAdmin(ticketID, payload.Status)
 
 	if err != nil {
 		return err
