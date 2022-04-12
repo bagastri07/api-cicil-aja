@@ -94,6 +94,10 @@ func Init() *echo.Echo {
 	adminEndpoint.Use(customMiddleware.VerifyToken())
 	adminEndpoint.Use(customMiddleware.IsAdmin())
 
+	adminBorrower := adminEndpoint.Group("/borrowers")
+	adminBorrower.GET("", borrowerCtl.HandleGetAllBorrowersForAdmin)
+	adminBorrower.GET("/:borrowerID", borrowerCtl.HandleGetBorrowerByIDForAdmin)
+
 	adminLoanTicket := adminEndpoint.Group("/loan-tickets")
 	adminLoanTicket.GET("", loanTicketCtl.HandleGetAllTicketForAdmin)
 	adminLoanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByIDForAdmin)
@@ -113,6 +117,7 @@ func Init() *echo.Echo {
 	// group for loan tickets
 	ambasaddorLoanTicket := ambasaddorEndpoint.Group("/loan-tickets")
 	ambasaddorLoanTicket.GET("", loanTicketCtl.HandleGetAllLoanTicketForAmbassador)
+	ambasaddorLoanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByIDForAmbassador)
 	ambasaddorLoanTicket.PATCH("/:loanTicketID/reviewed", loanTicketCtl.HandleReviewLoanTicketByAmbassador)
 
 	return e

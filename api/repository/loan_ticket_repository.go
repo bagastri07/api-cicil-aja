@@ -143,6 +143,33 @@ func (r *LoanTicketRepository) GetAllLoanTicketsForAmbassador(ambassadorID uint6
 	return loanTickets, nil
 }
 
+func (r *LoanTicketRepository) GetLoanLoanTicketByIdForAmbassador(ambassadorID uint64, loanTicketID string) (*model.LoanTicketAndBorrower, error) {
+	loatTicket := new(model.LoanTicket)
+
+	if err := r.dbClient.Where("ambassador_id", ambassadorID).Preload("LoanBills").First(loatTicket, loanTicketID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	borrower := new(model.Borrower)
+
+	if err := r.dbClient.First(&borrower, loatTicket.BorrowerID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	loanTicketAndBorrower := &model.LoanTicketAndBorrower{
+		LoanTicket: *loatTicket,
+		Borrower:   *borrower,
+	}
+
+	return loanTicketAndBorrower, nil
+}
+
 // ============ Admin Repository ==============
 
 func (r *LoanTicketRepository) GetAllLoanTicketsForAdmin(statuses string) (*model.LoanTickets, error) {

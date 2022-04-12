@@ -258,3 +258,35 @@ func (ctl *BorrowerController) HandleChangePassword(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, resp)
 }
+
+// ============ Admin Controller ==============
+
+func (ctl *BorrowerController) HandleGetAllBorrowersForAdmin(c echo.Context) error {
+	result, err := ctl.borrowerRepository.GetAllBorrowersForAdmin()
+
+	if err != nil {
+		return err
+	}
+
+	resp := model.DataResponse{
+		Data: result,
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (ctl *BorrowerController) HandleGetBorrowerByIDForAdmin(c echo.Context) error {
+	borrowerID := c.Param("borrowerID")
+
+	result, err := ctl.borrowerRepository.GetBorrowerByIDForAdmin(borrowerID)
+
+	if err != nil {
+		return err
+	}
+
+	resp := model.DataResponse{
+		Data: result,
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}

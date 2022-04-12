@@ -186,3 +186,25 @@ func (r *BorrowerRepository) ChangePassword(borrowerID uint64, newPassword strin
 
 	return nil
 }
+
+// ============ Admin Repository ==============
+
+func (r *BorrowerRepository) GetAllBorrowersForAdmin() (*model.Borrowers, error) {
+	borrowers := new(model.Borrowers)
+
+	if err := r.dbClient.Find(&borrowers.Borrowers).Error; err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return borrowers, nil
+}
+
+func (r *BorrowerRepository) GetBorrowerByIDForAdmin(borrowerID string) (*model.Borrower, error) {
+	borrower := new(model.Borrower)
+
+	if err := r.dbClient.First(&borrower, borrowerID).Error; err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return borrower, nil
+}

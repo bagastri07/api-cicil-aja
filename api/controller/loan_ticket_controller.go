@@ -151,6 +151,24 @@ func (ctl *LoanTicketController) HandleGetAllLoanTicketForAmbassador(c echo.Cont
 	return c.JSON(http.StatusOK, resp)
 }
 
+func (ctl *LoanTicketController) HandleGetLoanTicketByIDForAmbassador(c echo.Context) error {
+	userToken := c.Get("user").(*jwt.Token)
+	claims := userToken.Claims.(*token.JwtCustomClaims)
+
+	ticketID := c.Param("loanTicketID")
+
+	result, err := ctl.loanTicketRepository.GetLoanLoanTicketByIdForAmbassador(claims.ID, ticketID)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	resp := &model.DataResponse{
+		Data: result,
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
 // ============ Admin Controller ==============
 
 func (ctl *LoanTicketController) HandleGetAllTicketForAdmin(c echo.Context) error {

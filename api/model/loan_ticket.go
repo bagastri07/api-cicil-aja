@@ -22,3 +22,8 @@ type LoanTicket struct {
 type LoanTickets struct {
 	LoanTickets []LoanTicket `json:"loan_tickets"`
 }
+
+type LoanTicketAndBorrower struct {
+	LoanTicket LoanTicket `json:"loan_ticket"`
+	Borrower   Borrower   `json:"borrower"`
+}
