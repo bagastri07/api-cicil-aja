@@ -202,7 +202,7 @@ func (r *BorrowerRepository) GetAllBorrowersForAdmin() (*model.Borrowers, error)
 func (r *BorrowerRepository) GetBorrowerByIDForAdmin(borrowerID string) (*model.Borrower, error) {
 	borrower := new(model.Borrower)
 
-	if err := r.dbClient.First(&borrower, borrowerID).Error; err != nil {
+	if err := r.dbClient.Preload("Document").Preload("BankAccountInformation").First(&borrower, borrowerID).Error; err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 

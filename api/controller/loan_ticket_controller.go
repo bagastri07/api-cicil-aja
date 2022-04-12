@@ -141,7 +141,7 @@ func (ctl *LoanTicketController) HandleGetAllLoanTicketForAmbassador(c echo.Cont
 	result, err := ctl.loanTicketRepository.GetAllLoanTicketsForAmbassador(claims.ID, status)
 
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	resp := &model.DataResponse{
@@ -160,7 +160,7 @@ func (ctl *LoanTicketController) HandleGetLoanTicketByIDForAmbassador(c echo.Con
 	result, err := ctl.loanTicketRepository.GetLoanLoanTicketByIdForAmbassador(claims.ID, ticketID)
 
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	resp := &model.DataResponse{
