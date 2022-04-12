@@ -29,7 +29,8 @@ type Borrower struct {
 type BorrowerDocument struct {
 	ID         uint64 `json:"id"`
 	BorrowerID uint64 `json:"borrower_id"`
-	KTMUrl     string `json:"ktm_url" gorm:"NOT NULL"`
+	KTMUrl     string `json:"ktm_url"`
+	KTPUrl     string `json:"ktp_url"`
 	BaseModel
 }
 

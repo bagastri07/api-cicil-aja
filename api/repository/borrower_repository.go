@@ -149,6 +149,30 @@ func (r *BorrowerRepository) UploadKtmImage(filePath string, borrowerId uint64) 
 	return borrower, nil
 }
 
+func (r *BorrowerRepository) UploadKtpImage(filePath string, borrowerId uint64) (*model.Borrower, error) {
+	borrower := new(model.Borrower)
+
+	err := r.dbClient.Preload("Document").Preload("BankAccountInformation").First(borrower, borrowerId).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if borrower.Document == nil {
+		r.dbClient.Model(borrower).Association("Document").Append(&model.BorrowerDocument{
+			KTPUrl: filePath,
+		})
+	} else {
+		oldPath := borrower.Document.KTPUrl
+		os.Remove(filepath.Join("public", oldPath))
+
+		borrower.Document.KTPUrl = filePath
+	}
+	r.dbClient.Save(borrower.Document)
+
+	return borrower, nil
+}
+
 func (r *BorrowerRepository) ChangePassword(borrowerID uint64, newPassword string) error {
 	borrower := new(model.Borrower)
 

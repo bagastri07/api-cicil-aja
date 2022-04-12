@@ -57,7 +57,8 @@ func Init() *echo.Echo {
 	borrower.GET("", borrowerCtl.HandleGetCurrentBorrower)
 	borrower.PUT("", borrowerCtl.HandleUpdateBorrower)
 	borrower.PUT("/update-bank-information", borrowerCtl.HandleUpdateBorrowerBankAccount)
-	borrower.POST("/upload-ktm", borrowerCtl.HandleUploadBorrowerDocument)
+	borrower.POST("/upload-ktm", borrowerCtl.HandleUploadKTMBorrowerDocument)
+	borrower.POST("/upload-ktp", borrowerCtl.HandleUploadKTPBorrowerDocument)
 	borrower.PATCH("/change-password", borrowerCtl.HandleChangePassword)
 
 	// Group Loan Ticket
