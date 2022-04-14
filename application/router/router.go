@@ -102,6 +102,7 @@ func Init() *echo.Echo {
 	adminLoanTicket.GET("", loanTicketCtl.HandleGetAllTicketForAdmin)
 	adminLoanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByIDForAdmin)
 	adminLoanTicket.PATCH("/:loanTicketID/update-status", loanTicketCtl.HandleUpdateStatusLoanTicketByIDForAdmin)
+	adminLoanTicket.POST("/calculate-estimation", loanBillCtl.HandleCalculateEstimateLoanTicketForAdmin)
 
 	adminAmbassador := adminEndpoint.Group("/ambassadors")
 	adminAmbassador.GET("", ambassadorCtl.HandleGetAcceptedAmbassadorForAdmin)

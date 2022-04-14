@@ -43,3 +43,9 @@ type UpdateRegistrationStatus struct {
 type UpdateLoanTicketStatus struct {
 	Status string `json:"status" validate:"required,oneof=rejected accepted amba-ready"`
 }
+
+type CalculateEstimateLoanTicketPayload struct {
+	LoanAmount         float64 `json:"loan_amount" validate:"required"`
+	LoanTenureInMonths string  `json:"loan_tenure_in_months" validate:"required,oneof=3 6 12"`
+	InterestRate       float64 `json:"interest_rate"`
+}

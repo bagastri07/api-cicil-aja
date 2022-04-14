@@ -2,10 +2,12 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/bagastri07/api-cicil-aja/api/model"
 	"github.com/bagastri07/api-cicil-aja/api/repository"
 	"github.com/bagastri07/api-cicil-aja/api/token"
+	"github.com/bagastri07/api-cicil-aja/constant"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
@@ -35,11 +37,11 @@ func (ctl *LoanTicketController) HandleMakeLoanTicket(c echo.Context) error {
 	}
 
 	if payload.LoanTenureInMonths == "3" {
-		payload.InterestRate = 0.2
+		payload.InterestRate = constant.INTEREST_3_MONTHS
 	} else if payload.LoanTenureInMonths == "6" {
-		payload.InterestRate = 0.25
+		payload.InterestRate = constant.INTEREST_6_MONTHS
 	} else if payload.LoanTenureInMonths == "12" {
-		payload.InterestRate = 0.35
+		payload.InterestRate = constant.INTEREST_12_MONTHS
 	}
 
 	result, err := ctl.loanTicketRepository.MakeNewLoanTicket(claims.ID, payload)
@@ -224,5 +226,46 @@ func (ctl *LoanTicketController) HandleUpdateStatusLoanTicketByIDForAdmin(c echo
 	resp := &model.DataResponse{
 		Data: result,
 	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (ctl *LoanBillController) HandleCalculateEstimateLoanTicketForAdmin(c echo.Context) error {
+	payload := new(model.CalculateEstimateLoanTicketPayload)
+
+	if err := c.Bind(payload); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	if err := c.Validate(payload); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	if payload.LoanTenureInMonths == "3" {
+		payload.InterestRate = constant.INTEREST_3_MONTHS
+	} else if payload.LoanTenureInMonths == "6" {
+		payload.InterestRate = constant.INTEREST_6_MONTHS
+	} else if payload.LoanTenureInMonths == "12" {
+		payload.InterestRate = constant.INTEREST_12_MONTHS
+	}
+
+	loanTenure, err := strconv.Atoi(payload.LoanTenureInMonths)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	interest := payload.LoanAmount * payload.InterestRate
+	loanTotal := payload.LoanAmount + interest
+	monthlyBill := loanTotal / float64(loanTenure)
+	result := &model.CalculateEstimateLoanTicketResponse{
+		Interest:    interest,
+		LoanTotal:   loanTotal,
+		MonthlyBill: monthlyBill,
+	}
+
+	resp := &model.DataResponse{
+		Data: result,
+	}
+
 	return c.JSON(http.StatusOK, resp)
 }
