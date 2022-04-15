@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bagastri07/api-cicil-aja/api/model"
+	"github.com/bagastri07/api-cicil-aja/constant"
 	"github.com/bagastri07/api-cicil-aja/database"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -27,8 +28,6 @@ func (r *LoanBillRepository) GetAllLoanBill(borrowerID uint64, ticketID, status 
 	loanBills := new(model.LoanBills)
 
 	query := r.dbClient
-	fmt.Println(status == "paid")
-
 	if status == "paid" || status == "unpaid" {
 		query = query.Where("status = ?", status)
 	}
@@ -66,6 +65,20 @@ func (r *LoanBillRepository) PayLoanBillByID(borrowerID uint64, LoanBillID strin
 
 	if err := r.dbClient.Save(&loanBill).Error; err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	// search AmbassadorID by loan Bill
+	loanTicket := new(model.LoanTicket)
+	if err := r.dbClient.Preload("LoanBills").First(loanTicket, loanBill.LoanTicketID).Error; err != nil {
+		return nil, err
+	}
+
+	fmt.Println(loanTicket.AmbassadorID)
+
+	loanBillRepo := NewComissionTransactionRepository()
+	comissionAmount := constant.COMISSION_RATE * loanBill.BillAmount
+	if err := loanBillRepo.CreateComissionTrasaction(*loanTicket.AmbassadorID, comissionAmount, "in"); err != nil {
+		return nil, err
 	}
 
 	return loanBill, nil

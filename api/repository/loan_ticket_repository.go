@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -31,6 +30,12 @@ func (r *LoanTicketRepository) MakeNewLoanTicket(borrowerID uint64, payload *mod
 		return nil, err
 	}
 
+	ambaSelectedID, err := r.AssignAmbassadorToTicket(borrowerID)
+
+	if err != nil {
+		return nil, err
+	}
+
 	loanTicket := model.LoanTicket{
 		LoanAmount:         payload.LoanAmount,
 		LoanTenureInMonths: payload.LoanTenureInMonths,
@@ -40,6 +45,7 @@ func (r *LoanTicketRepository) MakeNewLoanTicket(borrowerID uint64, payload *mod
 		BorrowerID:         borrowerID,
 		LoanTotal:          payload.LoanAmount + (payload.LoanAmount * float64(payload.InterestRate)),
 		Status:             "pending",
+		AmbassadorID:       ambaSelectedID,
 	}
 
 	r.dbClient.Create(&loanTicket)
@@ -71,13 +77,13 @@ func (r *LoanTicketRepository) GetAllLoanTickets(borrowerID uint64, statuses str
 }
 
 func (r *LoanTicketRepository) GetLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
-	loatTicket := new(model.LoanTicket)
+	loanTicket := new(model.LoanTicket)
 
-	if err := r.dbClient.Where("borrower_id", borrowerID).Preload("LoanBills").First(loatTicket, loanTicketID).Error; err != nil {
+	if err := r.dbClient.Where("borrower_id", borrowerID).Preload("LoanBills").First(loanTicket, loanTicketID).Error; err != nil {
 		return nil, err
 	}
 
-	return loatTicket, nil
+	return loanTicket, nil
 }
 
 func (r *LoanTicketRepository) DeleteLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
@@ -218,27 +224,13 @@ func (r *LoanTicketRepository) UpdateStatusLoanTicketByIDForAdmin(loanTicketID, 
 		return nil, err
 	}
 
-	if (loanTicket.Status != "pending" && loanTicket.Status != "amba-ready") || loanTicket.Status == status {
+	if loanTicket.Status != "pending" || loanTicket.Status == status {
 		return nil, echo.NewHTTPError(http.StatusUnprocessableEntity, &model.MessageResponse{
 			Message: "this loan ticket is already " + loanTicket.Status,
 		})
 	}
 
-	if status == "amba-ready" {
-		ambaSelectedID, err := r.AssignAmbassadorToTicket(loanTicket.BorrowerID)
-
-		if err != nil {
-			return nil, err
-		}
-
-		loanTicket.AmbassadorID = ambaSelectedID
-	} else if status == "accepted" {
-		if loanTicket.Status != "amba-ready" {
-			return nil, echo.NewHTTPError(http.StatusUnprocessableEntity, &model.MessageResponse{
-				Message: fmt.Sprintf("this loan ticket is %s, can not be accepted", loanTicket.Status),
-			})
-		}
-
+	if status == "accepted" {
 		if loanTicket.ReviewedByAmbassadorAt == nil {
 			return nil, echo.NewHTTPError(http.StatusUnprocessableEntity, &model.MessageResponse{
 				Message: "this loan ticket need to be reviewed by ambassador",
@@ -269,16 +261,16 @@ func (r *LoanTicketRepository) AssignAmbassadorToTicket(borrowerID uint64) (*uin
 
 	result, err := ambassadorRepo.GetAllAmbassadorsWithTheNumberOfTicket()
 
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
 	ambaTickets := result.AmbassadarAndTickets
 
 	ambaSelected := ambaTickets[0]
 
 	if borrowerID == ambaSelected.ID {
 		ambaSelected = ambaTickets[1]
-	}
-
-	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return &ambaSelected.ID, nil

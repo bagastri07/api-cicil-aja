@@ -31,6 +31,7 @@ func Init() *echo.Echo {
 	loanTicketCtl := controller.NewLoanTicketController()
 	loanBillCtl := controller.NewLoanBillController()
 	ambassadorCtl := controller.NewAmbassadorController()
+	commissionCtl := controller.NewCommissionTransactionController()
 
 	// Root Routes
 	e.GET("/", func(c echo.Context) error {
@@ -120,6 +121,10 @@ func Init() *echo.Echo {
 	ambasaddorLoanTicket.GET("", loanTicketCtl.HandleGetAllLoanTicketForAmbassador)
 	ambasaddorLoanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByIDForAmbassador)
 	ambasaddorLoanTicket.PATCH("/:loanTicketID/reviewed", loanTicketCtl.HandleReviewLoanTicketByAmbassador)
+
+	// Group For Comission Transaction
+	ambasaddorComission := ambasaddorEndpoint.Group("/commissions")
+	ambasaddorComission.GET("/balance-detail", commissionCtl.HandleGetBalanceDetailAmbassador)
 
 	return e
 }
