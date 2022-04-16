@@ -39,22 +39,22 @@ func (r *ComissionRepository) GetComissionBalanceAmbassador(ambassadorID uint64)
 	comissionTransaction := new(model.AmbassadorComissionTrasaction)
 
 	if err := r.dbClient.Model(comissionTransaction).
-		Select("COALESCE(SUM(amount), 0) as debit").
+		Select("COALESCE(SUM(amount), 0) as 'in'").
 		Where("ambassador_id = ?", ambassadorID).
 		Where("type = ?", "in").
-		Scan(&balanceDetail.Debit).Error; err != nil {
+		Scan(&balanceDetail.In).Error; err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	if err := r.dbClient.Model(comissionTransaction).
-		Select("COALESCE(SUM(amount), 0) as credit").
+		Select("COALESCE(SUM(amount), 0) as 'out'").
 		Where("ambassador_id = ?", ambassadorID).
 		Where("type = ?", "out").
-		Scan(&balanceDetail.Credit).Error; err != nil {
+		Scan(&balanceDetail.Out).Error; err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	balanceDetail.Balance = balanceDetail.Debit - balanceDetail.Credit
+	balanceDetail.Balance = balanceDetail.In - balanceDetail.Out
 
 	return balanceDetail, nil
 }

@@ -113,6 +113,47 @@ func (ctl *LoanTicketController) HandleDeleteLoanTicketByID(c echo.Context) erro
 	return c.JSON(http.StatusOK, resp)
 }
 
+func (ctl *LoanBillController) HandleCalculateEstimateLoanTicket(c echo.Context) error {
+	payload := new(model.CalculateEstimateLoanTicketPayload)
+
+	if err := c.Bind(payload); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	if err := c.Validate(payload); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	if payload.LoanTenureInMonths == "3" {
+		payload.InterestRate = constant.INTEREST_3_MONTHS
+	} else if payload.LoanTenureInMonths == "6" {
+		payload.InterestRate = constant.INTEREST_6_MONTHS
+	} else if payload.LoanTenureInMonths == "12" {
+		payload.InterestRate = constant.INTEREST_12_MONTHS
+	}
+
+	loanTenure, err := strconv.Atoi(payload.LoanTenureInMonths)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	interest := payload.LoanAmount * payload.InterestRate
+	loanTotal := payload.LoanAmount + interest
+	monthlyBill := loanTotal / float64(loanTenure)
+	result := &model.CalculateEstimateLoanTicketResponse{
+		Interest:    interest,
+		LoanTotal:   loanTotal,
+		MonthlyBill: monthlyBill,
+	}
+
+	resp := &model.DataResponse{
+		Data: result,
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
 // ============ Ambassador Controller ==============
 func (ctl *LoanTicketController) HandleReviewLoanTicketByAmbassador(c echo.Context) error {
 	userToken := c.Get("user").(*jwt.Token)
@@ -226,46 +267,5 @@ func (ctl *LoanTicketController) HandleUpdateStatusLoanTicketByIDForAdmin(c echo
 	resp := &model.DataResponse{
 		Data: result,
 	}
-	return c.JSON(http.StatusOK, resp)
-}
-
-func (ctl *LoanBillController) HandleCalculateEstimateLoanTicketForAdmin(c echo.Context) error {
-	payload := new(model.CalculateEstimateLoanTicketPayload)
-
-	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-
-	if err := c.Validate(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
-	}
-
-	if payload.LoanTenureInMonths == "3" {
-		payload.InterestRate = constant.INTEREST_3_MONTHS
-	} else if payload.LoanTenureInMonths == "6" {
-		payload.InterestRate = constant.INTEREST_6_MONTHS
-	} else if payload.LoanTenureInMonths == "12" {
-		payload.InterestRate = constant.INTEREST_12_MONTHS
-	}
-
-	loanTenure, err := strconv.Atoi(payload.LoanTenureInMonths)
-
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-
-	interest := payload.LoanAmount * payload.InterestRate
-	loanTotal := payload.LoanAmount + interest
-	monthlyBill := loanTotal / float64(loanTenure)
-	result := &model.CalculateEstimateLoanTicketResponse{
-		Interest:    interest,
-		LoanTotal:   loanTotal,
-		MonthlyBill: monthlyBill,
-	}
-
-	resp := &model.DataResponse{
-		Data: result,
-	}
-
 	return c.JSON(http.StatusOK, resp)
 }

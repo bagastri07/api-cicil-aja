@@ -71,6 +71,7 @@ func Init() *echo.Echo {
 	loanTicket.GET("", loanTicketCtl.HandleGetAllTicket)
 	loanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByID)
 	loanTicket.DELETE("/:loanTicketID", loanTicketCtl.HandleDeleteLoanTicketByID)
+	loanTicket.POST("/calculate-estimation", loanBillCtl.HandleCalculateEstimateLoanTicket)
 
 	// Group Loan Bill
 	loanBill := e.Group("/loan-bills")
@@ -103,7 +104,6 @@ func Init() *echo.Echo {
 	adminLoanTicket.GET("", loanTicketCtl.HandleGetAllTicketForAdmin)
 	adminLoanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByIDForAdmin)
 	adminLoanTicket.PATCH("/:loanTicketID/update-status", loanTicketCtl.HandleUpdateStatusLoanTicketByIDForAdmin)
-	adminLoanTicket.POST("/calculate-estimation", loanBillCtl.HandleCalculateEstimateLoanTicketForAdmin)
 
 	adminAmbassador := adminEndpoint.Group("/ambassadors")
 	adminAmbassador.GET("", ambassadorCtl.HandleGetAcceptedAmbassadorForAdmin)

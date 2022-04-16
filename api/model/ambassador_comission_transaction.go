@@ -9,7 +9,7 @@ type AmbassadorComissionTrasaction struct {
 }
 
 type AmbassadorBalanceDetail struct {
-	Debit   float64 `json:"debit"`
-	Credit  float64 `json:"credit"`
+	In      float64 `json:"in"`
+	Out     float64 `json:"out"`
 	Balance float64 `json:"balance"`
 }
