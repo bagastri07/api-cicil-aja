@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -72,8 +71,6 @@ func (r *LoanBillRepository) PayLoanBillByID(borrowerID uint64, LoanBillID strin
 	if err := r.dbClient.Preload("LoanBills").First(loanTicket, loanBill.LoanTicketID).Error; err != nil {
 		return nil, err
 	}
-
-	fmt.Println(loanTicket.AmbassadorID)
 
 	loanBillRepo := NewComissionTransactionRepository()
 	comissionAmount := constant.COMISSION_RATE * loanBill.BillAmount

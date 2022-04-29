@@ -262,7 +262,12 @@ func (r *LoanTicketRepository) AssignAmbassadorToTicket(borrowerID uint64) (*uin
 	result, err := ambassadorRepo.GetAllAmbassadorsWithTheNumberOfTicket()
 
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	if len(result.AmbassadarAndTickets) <= 0 {
+		err := errors.New("no ambassador found")
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	ambaTickets := result.AmbassadarAndTickets
