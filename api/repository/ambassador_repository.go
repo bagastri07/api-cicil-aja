@@ -65,7 +65,7 @@ func (r *AmbassadorRepository) GetAllAmbassadorsWithTheNumberOfTicket() (*model.
 								LEFT JOIN cicil_aja.loan_tickets lt 
 								on b.id  = lt.ambassador_id AND
 									lt.status <> 'rejected'
-								WHERE b.is_ambassador = 1
+								WHERE b.is_ambassador = 1 AND lt.deleted_at IS NULL
 								GROUP  BY  b.id
 								ORDER BY number_of_ticket ASC, accepted_at ASC`).
 		Scan(&ambassadorLoanTicket.AmbassadarAndTickets).Error; err != nil {
