@@ -1,39 +1,9 @@
 version: '3.7'
 
 services:
-  mysql:
-    image: mysql:8
-    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci','--default-time-zone=+07:00']
-    container_name: "mysql_database"
-    ports:
-      - 3306:3306
-    volumes:
-      - database_mysql:/var/lib/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_PASSWORD=cicilpwd
-      - MYSQL_USER=cicilaja
-      - MYSQL_DATABASE=cicil_aja
-      - TZ=Asia/Jakarta
-    networks:
-      - api-cicilaja
-
   web_svc:
     build: .
     container_name: "cicil_aja"
     ports:
       - 8000:8000
     restart: always
-    depends_on:
-      - mysql
-    networks:
-      - api-cicilaja
-    environment:
-      - DB_HOST=mysql_database
-
-volumes:
-  database_mysql:
-
-networks:
-  api-cicilaja:
-    driver: bridge
