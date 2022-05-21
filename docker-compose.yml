@@ -7,3 +7,18 @@ services:
     ports:
       - 8000:8000
     restart: always
+    environment:
+      - DB_HOST=cicil_database
+    networks:
+      - mariadb_cicil-net
+    external_links:
+      - cicil_database:cicil_database
+    volumes:
+      - cicil_svc
+
+networks:
+  mariadb_cicil-net:
+    external: true
+
+volumes:
+  cicil_svc:
