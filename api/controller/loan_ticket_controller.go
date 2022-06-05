@@ -13,12 +13,14 @@ import (
 )
 
 type LoanTicketController struct {
-	loanTicketRepository *repository.LoanTicketRepository
+	e                    *echo.Echo
+	loanTicketRepository repository.LoanTicketRepository
 }
 
-func NewLoanTicketController() *LoanTicketController {
+func NewLoanTicketController(e *echo.Echo, repo repository.LoanTicketRepository) *LoanTicketController {
 	return &LoanTicketController{
-		loanTicketRepository: repository.NewLoanTicketRepository(),
+		e:                    e,
+		loanTicketRepository: repo,
 	}
 }
 
@@ -36,13 +38,7 @@ func (ctl *LoanTicketController) HandleMakeLoanTicket(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	if payload.LoanTenureInMonths == "3" {
-		payload.InterestRate = constant.INTEREST_3_MONTHS
-	} else if payload.LoanTenureInMonths == "6" {
-		payload.InterestRate = constant.INTEREST_6_MONTHS
-	} else if payload.LoanTenureInMonths == "12" {
-		payload.InterestRate = constant.INTEREST_12_MONTHS
-	}
+	payload.InterestRate = ctl.assignInterestRate(payload.LoanTenureInMonths)
 
 	result, err := ctl.loanTicketRepository.MakeNewLoanTicket(claims.ID, payload)
 
@@ -55,6 +51,16 @@ func (ctl *LoanTicketController) HandleMakeLoanTicket(c echo.Context) error {
 		Data:    result,
 	}
 	return c.JSON(http.StatusOK, resp)
+}
+
+func (ctl *LoanTicketController) assignInterestRate(loanTenure string) float32 {
+	if loanTenure == "3" {
+		return constant.InterestThreeMonths
+	} else if loanTenure == "6" {
+		return constant.InterestSixMonths
+	} else {
+		return constant.InterestTwelveMonths
+	}
 }
 
 func (ctl *LoanTicketController) HandleGetAllTicket(c echo.Context) error {
@@ -113,7 +119,7 @@ func (ctl *LoanTicketController) HandleDeleteLoanTicketByID(c echo.Context) erro
 	return c.JSON(http.StatusOK, resp)
 }
 
-func (ctl *LoanBillController) HandleCalculateEstimateLoanTicket(c echo.Context) error {
+func (ctl *LoanTicketController) HandleCalculateEstimateLoanTicket(c echo.Context) error {
 	payload := new(model.CalculateEstimateLoanTicketPayload)
 
 	if err := c.Bind(payload); err != nil {
@@ -125,17 +131,17 @@ func (ctl *LoanBillController) HandleCalculateEstimateLoanTicket(c echo.Context)
 	}
 
 	if payload.LoanTenureInMonths == "3" {
-		payload.InterestRate = constant.INTEREST_3_MONTHS
+		payload.InterestRate = constant.InterestThreeMonths
 	} else if payload.LoanTenureInMonths == "6" {
-		payload.InterestRate = constant.INTEREST_6_MONTHS
+		payload.InterestRate = constant.InterestSixMonths
 	} else if payload.LoanTenureInMonths == "12" {
-		payload.InterestRate = constant.INTEREST_12_MONTHS
+		payload.InterestRate = constant.InterestTwelveMonths
 	}
 
 	loanTenure, err := strconv.Atoi(payload.LoanTenureInMonths)
 
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	interest := payload.LoanAmount * payload.InterestRate

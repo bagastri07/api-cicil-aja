@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/bagastri07/api-cicil-aja/api/controller"
+	"github.com/bagastri07/api-cicil-aja/api/repository"
 	customMiddleware "github.com/bagastri07/api-cicil-aja/application/middleware"
 	"github.com/bagastri07/api-cicil-aja/validator"
 	"github.com/labstack/echo/v4"
@@ -24,11 +25,14 @@ func Init() *echo.Echo {
 		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.PATCH},
 	}))
 
+	//init repo
+	loanTicketRepo := repository.NewLoanTicketRepository()
+
 	// Init Controller
 	authCtl := controller.NewAuthController()
 	borrowerCtl := controller.NewBorrowerController()
 	verificationCtl := controller.NewVerificationController()
-	loanTicketCtl := controller.NewLoanTicketController()
+	loanTicketCtl := controller.NewLoanTicketController(e, loanTicketRepo)
 	loanBillCtl := controller.NewLoanBillController()
 	ambassadorCtl := controller.NewAmbassadorController()
 	commissionCtl := controller.NewCommissionTransactionController()
@@ -71,7 +75,7 @@ func Init() *echo.Echo {
 	loanTicket.GET("", loanTicketCtl.HandleGetAllTicket)
 	loanTicket.GET("/:loanTicketID", loanTicketCtl.HandleGetLoanTicketByID)
 	loanTicket.DELETE("/:loanTicketID", loanTicketCtl.HandleDeleteLoanTicketByID)
-	loanTicket.POST("/calculate-estimation", loanBillCtl.HandleCalculateEstimateLoanTicket)
+	loanTicket.POST("/calculate-estimation", loanTicketCtl.HandleCalculateEstimateLoanTicket)
 
 	// Group Loan Bill
 	loanBill := e.Group("/loan-bills")

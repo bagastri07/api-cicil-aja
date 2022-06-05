@@ -12,25 +12,38 @@ import (
 	"gorm.io/gorm"
 )
 
-type LoanTicketRepository struct {
+type LoanTicketRepository interface {
+	MakeNewLoanTicket(borrowerID uint64, payload *model.MakeLoanTicketPayload) (*model.LoanTicket, error)
+	GetAllLoanTickets(borrowerID uint64, statuses string) (*model.LoanTickets, error)
+	GetLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error)
+	DeleteLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error)
+	ReviewLoanTikcetByAmbassador(ambassadorID uint64, loanTicketID string) (*model.LoanTicket, error)
+	GetAllLoanTicketsForAmbassador(ambassadorID uint64, statuses string) (*model.LoanTickets, error)
+	GetLoanLoanTicketByIdForAmbassador(ambassadorID uint64, loanTicketID string) (*model.LoanTicketAndBorrower, error)
+	GetAllLoanTicketsForAdmin(statuses string) (*model.LoanTickets, error)
+	GetLoanTicketByIdForAdmin(loanTicketID string) (*model.LoanTicket, error)
+	UpdateStatusLoanTicketByIDForAdmin(loanTicketID, status string) (*model.LoanTicket, error)
+}
+
+type loanTicketRepository struct {
 	dbClient *gorm.DB
 }
 
-func NewLoanTicketRepository() *LoanTicketRepository {
+func NewLoanTicketRepository() LoanTicketRepository {
 	dbClient := database.GetDBConnection()
-	return &LoanTicketRepository{
+	return &loanTicketRepository{
 		dbClient: dbClient,
 	}
 }
 
-func (r *LoanTicketRepository) MakeNewLoanTicket(borrowerID uint64, payload *model.MakeLoanTicketPayload) (*model.LoanTicket, error) {
+func (r *loanTicketRepository) MakeNewLoanTicket(borrowerID uint64, payload *model.MakeLoanTicketPayload) (*model.LoanTicket, error) {
 	borrower := new(model.Borrower)
 
 	if err := r.dbClient.Preload("LoanTickets").First(&borrower, borrowerID).Error; err != nil {
 		return nil, err
 	}
 
-	ambaSelectedID, err := r.AssignAmbassadorToTicket(borrowerID)
+	ambaSelectedID, err := r.assignAmbassadorToTicket(borrowerID)
 
 	if err != nil {
 		return nil, err
@@ -53,7 +66,7 @@ func (r *LoanTicketRepository) MakeNewLoanTicket(borrowerID uint64, payload *mod
 	return &loanTicket, nil
 }
 
-func (r *LoanTicketRepository) GetAllLoanTickets(borrowerID uint64, statuses string) (*model.LoanTickets, error) {
+func (r *loanTicketRepository) GetAllLoanTickets(borrowerID uint64, statuses string) (*model.LoanTickets, error) {
 	loanTickets := new(model.LoanTickets)
 
 	query := r.dbClient
@@ -76,7 +89,7 @@ func (r *LoanTicketRepository) GetAllLoanTickets(borrowerID uint64, statuses str
 	return loanTickets, nil
 }
 
-func (r *LoanTicketRepository) GetLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
+func (r *loanTicketRepository) GetLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
 	loanTicket := new(model.LoanTicket)
 
 	if err := r.dbClient.Where("borrower_id", borrowerID).Preload("LoanBills").First(loanTicket, loanTicketID).Error; err != nil {
@@ -86,7 +99,7 @@ func (r *LoanTicketRepository) GetLoanTicketById(borrowerID uint64, loanTicketID
 	return loanTicket, nil
 }
 
-func (r *LoanTicketRepository) DeleteLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
+func (r *loanTicketRepository) DeleteLoanTicketById(borrowerID uint64, loanTicketID string) (*model.LoanTicket, error) {
 	loatTicket := new(model.LoanTicket)
 
 	if err := r.dbClient.Where("borrower_id", borrowerID).First(loatTicket, loanTicketID).Error; err != nil {
@@ -100,7 +113,7 @@ func (r *LoanTicketRepository) DeleteLoanTicketById(borrowerID uint64, loanTicke
 
 // ============ Ambassador Repository ==============
 
-func (r *LoanTicketRepository) ReviewLoanTikcetByAmbassador(ambassadorID uint64, loanTicketID string) (*model.LoanTicket, error) {
+func (r *loanTicketRepository) ReviewLoanTikcetByAmbassador(ambassadorID uint64, loanTicketID string) (*model.LoanTicket, error) {
 	loatTicket := new(model.LoanTicket)
 
 	if err := r.dbClient.Where("ambassador_id = ?", ambassadorID).Where("ID = ?", loanTicketID).First(&loatTicket).Error; err != nil {
@@ -126,7 +139,7 @@ func (r *LoanTicketRepository) ReviewLoanTikcetByAmbassador(ambassadorID uint64,
 	return loatTicket, nil
 }
 
-func (r *LoanTicketRepository) GetAllLoanTicketsForAmbassador(ambassadorID uint64, statuses string) (*model.LoanTickets, error) {
+func (r *loanTicketRepository) GetAllLoanTicketsForAmbassador(ambassadorID uint64, statuses string) (*model.LoanTickets, error) {
 	loanTickets := new(model.LoanTickets)
 
 	query := r.dbClient
@@ -149,7 +162,7 @@ func (r *LoanTicketRepository) GetAllLoanTicketsForAmbassador(ambassadorID uint6
 	return loanTickets, nil
 }
 
-func (r *LoanTicketRepository) GetLoanLoanTicketByIdForAmbassador(ambassadorID uint64, loanTicketID string) (*model.LoanTicketAndBorrower, error) {
+func (r *loanTicketRepository) GetLoanLoanTicketByIdForAmbassador(ambassadorID uint64, loanTicketID string) (*model.LoanTicketAndBorrower, error) {
 	loatTicket := new(model.LoanTicket)
 
 	if err := r.dbClient.Where("ambassador_id", ambassadorID).Preload("LoanBills").First(loatTicket, loanTicketID).Error; err != nil {
@@ -178,7 +191,7 @@ func (r *LoanTicketRepository) GetLoanLoanTicketByIdForAmbassador(ambassadorID u
 
 // ============ Admin Repository ==============
 
-func (r *LoanTicketRepository) GetAllLoanTicketsForAdmin(statuses string) (*model.LoanTickets, error) {
+func (r *loanTicketRepository) GetAllLoanTicketsForAdmin(statuses string) (*model.LoanTickets, error) {
 	loanTickets := new(model.LoanTickets)
 
 	query := r.dbClient
@@ -202,7 +215,7 @@ func (r *LoanTicketRepository) GetAllLoanTicketsForAdmin(statuses string) (*mode
 	return loanTickets, nil
 }
 
-func (r *LoanTicketRepository) GetLoanTicketByIdForAdmin(loanTicketID string) (*model.LoanTicket, error) {
+func (r *loanTicketRepository) GetLoanTicketByIdForAdmin(loanTicketID string) (*model.LoanTicket, error) {
 	loatTicket := new(model.LoanTicket)
 
 	result := r.dbClient.Preload("LoanBills").First(loatTicket, loanTicketID)
@@ -217,7 +230,7 @@ func (r *LoanTicketRepository) GetLoanTicketByIdForAdmin(loanTicketID string) (*
 	return loatTicket, nil
 }
 
-func (r *LoanTicketRepository) UpdateStatusLoanTicketByIDForAdmin(loanTicketID, status string) (*model.LoanTicket, error) {
+func (r *loanTicketRepository) UpdateStatusLoanTicketByIDForAdmin(loanTicketID, status string) (*model.LoanTicket, error) {
 	loanTicket, err := r.GetLoanTicketByIdForAdmin(loanTicketID)
 
 	if err != nil {
@@ -256,7 +269,7 @@ func (r *LoanTicketRepository) UpdateStatusLoanTicketByIDForAdmin(loanTicketID, 
 	return loanTicket, nil
 }
 
-func (r *LoanTicketRepository) AssignAmbassadorToTicket(borrowerID uint64) (*uint64, error) {
+func (r *loanTicketRepository) assignAmbassadorToTicket(borrowerID uint64) (*uint64, error) {
 	ambassadorRepo := NewAmbassadorReposotory()
 
 	result, err := ambassadorRepo.GetAllAmbassadorsWithTheNumberOfTicket()
