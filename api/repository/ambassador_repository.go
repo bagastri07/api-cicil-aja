@@ -121,10 +121,20 @@ func (r *AmbassadorRepository) UpdateAmbassadorRegistrationStatusForAdmin(regist
 	return nil
 }
 
-func (r *AmbassadorRepository) GetAllAmbassadorRegistrationForAdmin(statuses string) (*model.AmbassadorRegistrations, error) {
-	registrations := new(model.AmbassadorRegistrations)
+func (r *AmbassadorRepository) GetAllAmbassadorRegistrationForAdmin(statuses string) ([]model.GetAllAmbassadorRegistrations, error) {
+	registrations := []model.GetAllAmbassadorRegistrations{}
 
-	query := r.dbClient
+	query := r.dbClient.Table("ambassador_registrations").
+		Select(`ambassador_registrations.id, 
+				ambassador_registrations.borrower_id,
+				ambassador_registrations.status,
+				borrowers.name,
+				borrowers.birthday,
+				borrowers.email,
+				borrowers.university,
+				borrowers.study_program,
+				borrowers.phone_number,
+				borrowers.student_number`)
 
 	statusesSlice := strings.Split(statuses, ",")
 
@@ -138,7 +148,9 @@ func (r *AmbassadorRepository) GetAllAmbassadorRegistrationForAdmin(statuses str
 		}
 	}
 
-	if err := query.Find(&registrations.AmbassadorRegistrations).Error; err != nil {
+	if err := query.
+		Joins("LEFT JOIN borrowers ON borrowers.id = ambassador_registrations.borrower_id").
+		Scan(&registrations).Error; err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 
