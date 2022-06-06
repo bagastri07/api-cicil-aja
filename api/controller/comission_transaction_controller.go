@@ -36,3 +36,20 @@ func (ctl *ComissionController) HandleGetBalanceDetailAmbassador(c echo.Context)
 
 	return c.JSON(http.StatusOK, resp)
 }
+
+func (ctl *ComissionController) HandleGetAllComissionHistory(c echo.Context) error {
+	userToken := c.Get("user").(*jwt.Token)
+	claims := userToken.Claims.(*token.JwtCustomClaims)
+
+	result, err := ctl.comissionRepository.GetAllComissionHistory(claims.ID)
+
+	if err != nil {
+		return err
+	}
+
+	resp := &model.DataResponse{
+		Data: result,
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}

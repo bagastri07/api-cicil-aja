@@ -58,3 +58,13 @@ func (r *ComissionRepository) GetComissionBalanceAmbassador(ambassadorID uint64)
 
 	return balanceDetail, nil
 }
+
+func (r *ComissionRepository) GetAllComissionHistory(ambassadorID uint64) ([]model.AmbassadorComissionTrasaction, error) {
+	comissionHistory := []model.AmbassadorComissionTrasaction{}
+
+	if err := r.dbClient.Find(&comissionHistory).Where("ambassador_id = ?", ambassadorID).Error; err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return comissionHistory, nil
+}

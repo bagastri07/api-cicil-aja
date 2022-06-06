@@ -129,6 +129,7 @@ func Init() *echo.Echo {
 	// Group For Comission Transaction
 	ambasaddorComission := ambasaddorEndpoint.Group("/commissions")
 	ambasaddorComission.GET("/balance-detail", commissionCtl.HandleGetBalanceDetailAmbassador)
+	ambasaddorComission.GET("/comission-history", commissionCtl.HandleGetAllComissionHistory)
 
 	// Group for Borrower
 	ambassadorBorrower := ambasaddorEndpoint.Group("/borrowers")
