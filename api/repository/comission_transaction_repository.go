@@ -68,3 +68,17 @@ func (r *ComissionRepository) GetAllComissionHistory(ambassadorID uint64) ([]mod
 
 	return comissionHistory, nil
 }
+
+func (r *ComissionRepository) WithdrawBalance(ambassadorID uint64, ammount float64) error {
+	comissionTransaction := model.AmbassadorComissionTrasaction{
+		Amount:       ammount,
+		Type:         "out",
+		AmbassadorID: ambassadorID,
+	}
+
+	if err := r.dbClient.Create(&comissionTransaction).Error; err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return nil
+}

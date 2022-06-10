@@ -53,3 +53,36 @@ func (ctl *ComissionController) HandleGetAllComissionHistory(c echo.Context) err
 
 	return c.JSON(http.StatusOK, resp)
 }
+
+func (ctl *ComissionController) HandleWithdrawBalance(c echo.Context) error {
+	userToken := c.Get("user").(*jwt.Token)
+	claims := userToken.Claims.(*token.JwtCustomClaims)
+
+	payload := new(model.WitdhdrawPayload)
+	if err := c.Bind(payload); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	if err := c.Validate(payload); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	balanceDetail, err := ctl.comissionRepository.GetComissionBalanceAmbassador(claims.ID)
+	if err != nil {
+		return err
+	}
+
+	if balanceDetail.Balance < payload.Ammount {
+		return echo.NewHTTPError(http.StatusBadRequest, model.MessageResponse{
+			Message: "the balance is not sufficient.",
+		})
+	}
+
+	if err := ctl.comissionRepository.WithdrawBalance(claims.ID, payload.Ammount); err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, model.MessageResponse{
+		Message: "OK",
+	})
+}

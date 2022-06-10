@@ -13,3 +13,7 @@ type AmbassadorBalanceDetail struct {
 	Out     float64 `json:"out"`
 	Balance float64 `json:"balance"`
 }
+
+type WitdhdrawPayload struct {
+	Ammount float64 `json:"ammount" validate:"required,number"`
+}
