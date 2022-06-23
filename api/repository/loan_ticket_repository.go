@@ -174,7 +174,7 @@ func (r *loanTicketRepository) GetLoanLoanTicketByIdForAmbassador(ambassadorID u
 
 	borrower := new(model.Borrower)
 
-	if err := r.dbClient.First(&borrower, loatTicket.BorrowerID).Error; err != nil {
+	if err := r.dbClient.Preload("Document").Preload("BankAccountInformation").First(&borrower, loatTicket.BorrowerID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
